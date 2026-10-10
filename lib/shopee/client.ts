@@ -1,4 +1,6 @@
 import { buildShopeeAuth } from './signer';
+import { defaultSessionClient } from './session-client';
+import { buildAffiliateTrackingUrl } from './tracking-builder';
 import {
   GENERATE_SHORT_LINK_MUTATION,
   PRODUCT_OFFER_QUERY,
@@ -118,7 +120,7 @@ export class ShopeeClient {
   }
 
   /**
-   * Tạo Link Rút gọn Affiliate (generateShortLink)
+   * Tạo Link Rút gọn Affiliate (Hỗ trợ 3 tầng: Session Cookie -> Direct Tracking URL -> Open API GraphQL / Mock)
    * @param originUrl Đường link sản phẩm Shopee gốc
    * @param subIds Danh sách tối đa 5 SubID phân tích traffic
    */
@@ -126,6 +128,26 @@ export class ShopeeClient {
     originUrl: string,
     subIds?: string[]
   ): Promise<string> {
+    // Tầng 1: Nếu cấu hình Session Cookie, thử gọi API nội bộ Console sinh link s.shopee.vn
+    if (defaultSessionClient.isAvailable()) {
+      const sessionLink = await defaultSessionClient.generateShortLink(originUrl, subIds);
+      if (sessionLink) {
+        return sessionLink;
+      }
+    }
+
+    // Tầng 2: Nếu có cấu hình SHOPEE_AFFILIATE_ID, sinh Direct Tracking URL
+    const customAffiliateId = process.env.SHOPEE_AFFILIATE_ID;
+    if (customAffiliateId && !this.appId) {
+      return buildAffiliateTrackingUrl({
+        cleanUrl: originUrl,
+        affiliateId: customAffiliateId,
+        subIds,
+        includeMetaVoucher: true,
+      });
+    }
+
+    // Tầng 3: Gọi Open API GraphQL (nếu có key thật) hoặc Mock Response
     const input: { originUrl: string; subIds?: string[] } = { originUrl };
     if (subIds && subIds.length > 0) {
       input.subIds = subIds.slice(0, 5);

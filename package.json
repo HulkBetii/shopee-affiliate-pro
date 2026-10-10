@@ -12,7 +12,8 @@
     "test:phase3": "tsx scripts/verify-phase3.ts",
     "test:phase4": "tsx scripts/verify-phase4.ts",
     "test:phase5": "tsx scripts/verify-phase5.ts",
-    "test:all": "tsx scripts/verify-shopee-client.ts && tsx scripts/verify-phase2.ts && tsx scripts/verify-phase3.ts && tsx scripts/verify-phase4.ts && tsx scripts/verify-phase5.ts"
+    "test:non-api": "tsx scripts/verify-non-api.ts",
+    "test:all": "tsx scripts/verify-shopee-client.ts && tsx scripts/verify-phase2.ts && tsx scripts/verify-phase3.ts && tsx scripts/verify-phase4.ts && tsx scripts/verify-phase5.ts && tsx scripts/verify-non-api.ts"
   },
   "dependencies": {
     "@upstash/redis": "^1.39.0",
