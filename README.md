@@ -1,65 +1,92 @@
-# ShopeeLink Pro - Hệ Thống Shopee Affiliate Converter & Voucher Injection
+# ShopeeLink Pro - Hệ Thống Săn Voucher 25% & Rút Gọn Shopee Link
 
-> Dự án tự động hóa chuyển đổi link Shopee Affiliate, tích hợp cơ chế kích hoạt Voucher độc quyền (Meta Partner / Shopee Video / Live) và tối ưu phễu chuyển đổi từ mạng xã hội (TikTok, Facebook Reels, Shorts).
+> **Website chính thức**: [https://shopee.mrhulkstore.store](https://shopee.mrhulkstore.store)  
+> **Mirror Deploy (Vercel)**: [https://shopeelink-pr.vercel.app](https://shopeelink-pr.vercel.app)  
+> **Shopee Partner Tracking ID**: `an_17315740682`  
+> **Đơn vị phát triển**: MrHulk Store
 
 ---
 
 ## 📌 1. Tổng quan Dự án
 
-Hệ thống cho phép người dùng dán bất kỳ đường link sản phẩm Shopee nào và nhận lại một **Link Mua Hàng Ưu Đãi** đã được:
-1. Gắn mã tiếp thị liên kết (**Shopee Affiliate Tracking**) chính chủ qua Shopee Open API.
-2. Tự động kích hoạt các tầng giảm giá sâu (**Voucher 20% - 25% tối đa 300k - 500k** từ chương trình Meta Partner hoặc Video/Live).
-3. Đánh thức trực tiếp ứng dụng Shopee (Universal Deep Link) mà không bị kẹt trong trình duyệt nhúng (In-App WebView) của TikTok/Facebook.
+**ShopeeLink Pro** là hệ thống tự động hóa chuyển đổi liên kết Shopee Affiliate, tích hợp cơ chế kích hoạt Voucher độc quyền (Meta Partner / Shopee Video / Live) và tối ưu hóa phễu chuyển đổi từ mạng xã hội (TikTok Bio, Facebook Reels, Shorts, Zalo).
+
+### Điểm nổi bật:
+1. **Khối Chuyển Đổi Vàng (Mobile-First Golden Block)**: 100% thao tác xem lợi ích, dán link và bấm mở App Shopee nằm trọn vẹn trong **Màn hình đầu tiên (Above-The-Fold)** trên điện thoại di động, không cần cuộn trang.
+2. **Triệt tiêu lỗi iOS Auto-Zoom**: Chuẩn hóa ô nhập liệu 16px chống phóng to màn hình trên iPhone Safari.
+3. **Cơ chế Universal Deep Link**: Đánh thức trực tiếp ứng dụng Shopee, tự động gắn mã giảm giá 20% - 25% (tối đa 500k) và khắc phục tình trạng kẹt trong trình duyệt nhúng của TikTok / Facebook Messenger.
+4. **Kiến trúc Hybrid Tracking**: Hỗ trợ đồng thời Shopee Open API (GraphQL) và kiến trúc Non-OpenAPI Direct Tracking với mã Partner ID `an_17315740682`.
+5. **Branded Domain trên Cloudflare Edge**: Tên miền thương hiệu riêng `shopee.mrhulkstore.store` giúp tăng tỷ lệ nhấp chuột (CTR), chống bị mạng xã hội quét chặn link.
 
 ---
 
-## 🏗️ 2. Tech Stack Lựa chọn
+## 🏗️ 2. Tech Stack
 
-* **Frontend**: Next.js 14+ (App Router), React, Tailwind CSS, Lucide Icons (Tối ưu Mobile-first, Dark Mode).
-* **Backend**: Next.js Serverless API Routes / Node.js runtime.
-* **Core API**: Shopee Open API (GraphQL endpoint chính thức `https://open-api.affiliate.shopee.vn/graphql`).
-* **Caching & Storage**: Upstash Redis (Free tier) hoặc SQLite / In-memory cache để giảm tải Shopee rate-limit.
-* **Deployment**: Vercel (Miễn phí, CI/CD tự động từ GitHub, tích hợp Edge Functions).
-* **Notification Bot (Mở rộng)**: Telegram Bot (`telegraf` hoặc Python `aiogram`) thông báo đối soát doanh thu mỗi ngày.
+* **Frontend**: Next.js 14+ (App Router), React 18, Tailwind CSS, Lucide Icons (Tối ưu Mobile-First, Dark Mode Glassmorphism).
+* **Backend**: Next.js Serverless Route Handlers / Node.js runtime.
+* **Core API**: Shopee Open API GraphQL (`open-api.affiliate.shopee.vn`) & Non-OpenAPI Direct Tracking Engine.
+* **DNS & Hosting**: Cloudflare DNS (CNAME record) + Vercel Global Edge Network (SSL HTTPS tự động).
+* **Caching & Storage**: Upstash Redis (REST API) & In-memory Fallback Cache.
+* **Automation**: Telegram Bot Notifier (Báo cáo đối soát doanh thu tự động lúc 23:00 hàng ngày).
 
 ---
 
 ## 📂 3. Cấu trúc Tài liệu Dự án
 
-Tất cả các tài liệu kỹ thuật và định hướng chuyên sâu được lưu trữ tại thư mục [`docs/`](./docs/):
+Tất cả các tài liệu kỹ thuật và cẩm nang vận hành được lưu trữ tại thư mục [`docs/`](./docs/):
 
 | Tài liệu | Nội dung chính |
 | :--- | :--- |
-| **[`docs/PROJECT_PLAN.md`](./docs/PROJECT_PLAN.md)** | Kế hoạch triển khai 5 Phase, phân rã WBS 13 tasks, estimate thời gian và 2 rủi ro kỹ thuật lớn nhất. |
+| **[`docs/TRAFFIC_AND_SEEDING_PLAYBOOK.md`](./docs/TRAFFIC_AND_SEEDING_PLAYBOOK.md)** | **[MỚI]** Cẩm nang đi comment dạo không bị ẩn, 3 kịch bản video TikTok 15s chuyển đổi cao, quy trình kéo traffic. |
+| **[`docs/PROJECT_PLAN.md`](./docs/PROJECT_PLAN.md)** | Kế hoạch triển khai 5 Phase, phân rã WBS 13 tasks và đánh giá rủi ro kỹ thuật. |
 | **[`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)** | Kiến trúc kỹ thuật chi tiết: Flow dữ liệu, module bóc tách URL, cơ chế Shim Redirect và Deep Link. |
-| **[`docs/SHOPEE_API_SPEC.md`](./docs/SHOPEE_API_SPEC.md)** | Đặc tả kỹ thuật Shopee Open API GraphQL, thuật toán ký số SHA256, code mẫu Node.js/Python, và Data API gắn tag. |
-| **[`docs/FUNNEL_AND_STRATEGY.md`](./docs/FUNNEL_AND_STRATEGY.md)** | Chiến lược phễu TikTok $\rightarrow$ Web/Zalo, kịch bản video hook 3s, giữ chân khách và chính sách chống đóng băng hoa hồng. |
-| **[`docs/REPOS_AND_ECOSYSTEM.md`](./docs/REPOS_AND_ECOSYSTEM.md)** | Đánh giá các mã nguồn mở liên quan (GitHub repos, MCP servers, `bcat95/shopee-aff`, `zca-js`, `addlivetag`). |
+| **[`docs/SHOPEE_API_SPEC.md`](./docs/SHOPEE_API_SPEC.md)** | Đặc tả kỹ thuật Shopee Open API GraphQL, thuật toán ký số SHA256 và Data API. |
+| **[`docs/FUNNEL_AND_STRATEGY.md`](./docs/FUNNEL_AND_STRATEGY.md)** | Chiến lược phễu TikTok $\rightarrow$ Web/Zalo, kịch bản video hook 3s và chống đóng băng hoa hồng. |
+| **[`docs/REPOS_AND_ECOSYSTEM.md`](./docs/REPOS_AND_ECOSYSTEM.md)** | Đánh giá các mã nguồn mở liên quan (GitHub repos, MCP servers, ecosystem). |
 
 ---
 
-## 🚀 4. Lộ trình Triển khai Nhanh (Roadmap)
+## 🧪 4. Kiểm Thử & Xác Minh (Test Suite)
 
+Hệ thống được bảo vệ bởi 6 kịch bản kiểm thử độc lập (`26/26 tests passed`):
+
+```bash
+npm run test:all
 ```
-[Phase 1: Setup & Shopee Auth Core] ──► [Phase 2: Link Engine & Voucher Shim]
-                                                          │
-[Phase 4: Telegram Automation]      ◄── [Phase 3: Mobile-First Frontend Web]
-         │
-         ▼
-[Phase 5: In-App WebView Test & Vercel Deploy] ──► GO-LIVE
-```
+
+* **Phase 1 Verification**: Thuật toán ký số SHA256, GraphQL mutation `generateShortLink`, query `productOfferV2`, `conversionReport`.
+* **Phase 2 Verification**: Trích xuất link thô, chuẩn hóa URL, CacheService fallback, Shim voucher injection.
+* **Phase 3 Verification**: Frontend payload schema, ConvertForm multiline paste, Bridge Route `/go/[slug]`.
+* **Phase 4 Verification**: Doanh số GMV, formatter tiền tệ VNĐ, Telegram Bot notification dry-run.
+* **Phase 5 Verification**: Analytics safe execution, SEO robots metadata, sitemap metadata, security headers.
+* **Non-API Verification**: Direct tracking builder, ShopeeSessionClient graceful fallback, Non-API deep link shim.
 
 ---
 
-## ⚙️ 5. Bắt đầu Cài đặt (Getting Started)
+## ⚙️ 5. Hướng Dẫn Cài Đặt (Local Development)
 
-1. Sao chép cấu hình môi trường:
+1. Clone kho lưu trữ:
+   ```bash
+   git clone https://github.com/HulkBetii/shopee-affiliate-pro.git
+   cd shopee-affiliate-pro
+   ```
+2. Cài đặt các gói phụ thuộc:
+   ```bash
+   npm install
+   ```
+3. Cấu hình file môi trường `.env.local`:
    ```bash
    cp .env.example .env.local
    ```
-2. Điền các tham số `SHOPEE_APP_ID`, `SHOPEE_SECRET_KEY` lấy từ trang Shopee Affiliate Console.
-3. Cài đặt dependencies và chạy dev server:
+4. Khởi chạy máy chủ phát triển:
    ```bash
-   npm install
    npm run dev
    ```
+   Mở trình duyệt tại [http://localhost:3000](http://localhost:3000).
+
+---
+
+## 🌐 6. Triển Khai Sản Phẩm (Production Deployment)
+
+Hệ thống được thiết lập CI/CD tự động:
+- Đẩy code lên nhánh `main` của repository `shopeelink-pr` &rarr; Vercel tự động build và phát hành lên **`https://shopee.mrhulkstore.store`**.
