@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://shopeelink.pro';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://shopee.mrhulkstore.store';
 
   return {
     rules: [

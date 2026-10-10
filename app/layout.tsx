@@ -2,11 +2,11 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Analytics } from '@/components/Analytics';
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://shopeelink.pro';
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://shopee.mrhulkstore.store';
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
-  title: 'ShopeeLink Pro - Hệ Thống Săn Voucher 25% & Rút Gọn Shopee Link',
+  title: 'ShopeeLink Pro - Săn Voucher 25% Shopee | MrHulk Store',
   description: 'Dán link Shopee bất kỳ để nhận ngay mã giảm giá 20-25% tối đa 500k. Đánh thức trực tiếp App Shopee, mua sắm an toàn không lo kẹt trình duyệt.',
   keywords: [
     'shopee affiliate',
@@ -14,20 +14,21 @@ export const metadata: Metadata = {
     'voucher shopee 25%',
     'săn sale shopee',
     'shopee link rút gọn',
+    'mrhulk store',
     'voucher meta partner',
   ],
-  authors: [{ name: 'ShopeeLink Pro' }],
+  authors: [{ name: 'MrHulk Store' }],
   openGraph: {
-    title: 'ShopeeLink Pro - Săn Mã Giảm Giá 25% Shopee',
-    description: 'Chỉ mất 3 giây để giảm ngay 25% cho đơn hàng Shopee của bạn. Nhận mã độc quyền Meta Collab và mở App Shopee ngay.',
+    title: 'ShopeeLink Pro - Săn Mã Giảm Giá 25% Shopee | MrHulk Store',
+    description: 'Chỉ mất 3 giây để giảm ngay 25% cho đơn hàng Shopee của bạn. Nhận mã độc quyền và mở thẳng App Shopee ngay.',
     url: baseUrl,
-    siteName: 'ShopeeLink Pro',
+    siteName: 'ShopeeLink Pro - MrHulk Store',
     locale: 'vi_VN',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ShopeeLink Pro - Săn Mã Giảm Giá 25% Shopee',
+    title: 'ShopeeLink Pro - Săn Mã Giảm Giá 25% Shopee | MrHulk Store',
     description: 'Dán link Shopee - Giảm ngay 25% mọi đơn hàng. Mở app Shopee trực tiếp.',
   },
 };
