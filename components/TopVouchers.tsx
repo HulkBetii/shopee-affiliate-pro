@@ -70,24 +70,21 @@ export const TopVouchers: React.FC = () => {
 
   return (
     <div className="w-full max-w-2xl text-left">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500/10 text-[#EE4D2D]">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-500/10 text-[#EE4D2D] shrink-0">
             <Flame className="h-4 w-4" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-base font-bold text-white sm:text-lg">Top Mã Giảm Giá Hot Hôm Nay</h3>
-              <span className="text-[10px] text-orange-400 sm:hidden">(Vuốt xem &rarr;)</span>
-            </div>
-            <p className="text-xs text-slate-400">Tự động kích hoạt khi bấm mở ứng dụng Shopee</p>
+            <h3 className="text-sm font-bold text-white sm:text-base">Top Voucher Hot Hôm Nay</h3>
+            <p className="text-[11px] text-slate-400">Tự động kích hoạt khi mở App Shopee</p>
           </div>
         </div>
 
-        <span className="flex items-center gap-1 rounded-full bg-slate-800/80 px-2.5 py-1 text-[11px] text-slate-400">
-          <Clock className="h-3 w-3 text-orange-400" />
-          <span>Mới cập nhật</span>
-        </span>
+        <div className="flex items-center gap-1 rounded-full border border-slate-800 bg-slate-800/80 px-2 py-0.5 text-[10px] text-slate-400 shrink-0">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span>Vuốt ngang &rarr;</span>
+        </div>
       </div>
 
       {/* Swipeable Carousel on Mobile, 2-col Grid on Desktop */}

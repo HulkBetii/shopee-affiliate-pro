@@ -86,12 +86,12 @@ export const ConvertForm: React.FC<ConvertFormProps> = ({
   return (
     <div className="w-full max-w-2xl">
       <form onSubmit={handleSubmit} className="relative">
-        <div className="glass-panel relative rounded-3xl p-3 shadow-2xl transition-all focus-within:border-[#EE4D2D]/60 focus-within:ring-2 focus-within:ring-[#EE4D2D]/20 sm:p-4">
-          {/* Textarea nhập link linh hoạt */}
+        <div className="glass-panel relative rounded-2xl p-2.5 shadow-2xl transition-all focus-within:border-[#EE4D2D]/60 focus-within:ring-2 focus-within:ring-[#EE4D2D]/20 sm:rounded-3xl sm:p-3.5">
+          {/* Textarea nhập link linh hoạt với nút Dán tích hợp */}
           <div className="relative">
             <textarea
               ref={inputRef}
-              rows={3}
+              rows={2}
               value={inputUrl}
               onChange={(e) => {
                 setInputUrl(e.target.value);
@@ -100,45 +100,46 @@ export const ConvertForm: React.FC<ConvertFormProps> = ({
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
-              placeholder="Dán link sản phẩm Shopee vào đây... (Ví dụ: https://s.shopee.vn/... hoặc copy từ nút Chia sẻ trong App)"
-              className="w-full resize-none rounded-2xl bg-slate-900/60 p-3.5 pr-10 text-base text-slate-100 placeholder-slate-500 outline-none transition-colors"
+              placeholder="Dán link Shopee vào đây (hoặc link chia sẻ từ App)..."
+              className="w-full resize-none rounded-xl bg-slate-900/70 p-3 pr-24 text-sm text-slate-100 placeholder-slate-500 outline-none transition-colors sm:text-base sm:pr-28"
               disabled={isLoading}
             />
 
-            {/* Nút xóa nhanh nội dung */}
-            {inputUrl && (
-              <button
-                type="button"
-                onClick={() => {
-                  setInputUrl('');
-                  setErrorMessage(null);
-                }}
-                className="absolute right-3 top-3 rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
-                title="Xóa nội dung"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
+            {/* Nút hành động góc phải trong ô input */}
+            <div className="absolute right-2 top-2.5 flex items-center gap-1">
+              {!inputUrl ? (
+                <button
+                  type="button"
+                  onClick={handlePasteClipboard}
+                  disabled={isLoading}
+                  className="inline-flex items-center gap-1 rounded-lg border border-orange-500/30 bg-orange-500/15 px-2.5 py-1 text-[11px] font-bold text-orange-400 transition-all hover:bg-orange-500/25 active:scale-95 disabled:opacity-50"
+                  title="Dán nhanh từ bộ nhớ tạm"
+                >
+                  <Clipboard className="h-3 w-3" />
+                  <span>Dán</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInputUrl('');
+                    setErrorMessage(null);
+                  }}
+                  className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+                  title="Xóa nội dung"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* Action Row: Mobile-First Layout */}
-          <div className="mt-3 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
-            {/* Nút Dán Clipboard Nhanh */}
-            <button
-              type="button"
-              onClick={handlePasteClipboard}
-              disabled={isLoading}
-              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-slate-700/80 bg-slate-800/80 px-4 py-2.5 text-xs font-semibold text-slate-200 transition-all hover:border-slate-600 hover:bg-slate-700 active:scale-95 disabled:opacity-50 sm:min-h-0 sm:py-2.5"
-            >
-              <Clipboard className="h-4 w-4 text-orange-400" />
-              <span>Dán Nhanh Từ Clipboard</span>
-            </button>
-
-            {/* Nút Submit Kích Hoạt Mã */}
+          {/* Nút Submit Kích Hoạt Mã To Bản 1-Chạm */}
+          <div className="mt-2 sm:mt-2.5">
             <button
               type="submit"
               disabled={isLoading || !inputUrl.trim()}
-              className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#EE4D2D] via-orange-500 to-amber-500 px-6 py-3 text-sm font-extrabold text-white shadow-lg shadow-[#EE4D2D]/30 transition-all hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto sm:py-2.5 sm:text-sm"
+              className="inline-flex min-h-[46px] w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#EE4D2D] via-orange-500 to-amber-500 px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-[#EE4D2D]/30 transition-all hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-[48px] sm:text-base"
             >
               {isLoading ? (
                 <>
@@ -147,8 +148,8 @@ export const ConvertForm: React.FC<ConvertFormProps> = ({
                 </>
               ) : (
                 <>
-                  <Sparkles className="h-4 w-4" />
-                  <span>LẤY MÃ GIẢM 25%</span>
+                  <Sparkles className="h-4 w-4 text-amber-200" />
+                  <span>LẤY MÃ GIẢM 25% (MỞ APP)</span>
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}
