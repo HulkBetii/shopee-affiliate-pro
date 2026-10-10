@@ -1,0 +1,137 @@
+'use client';
+
+import React, { useState } from 'react';
+import { Flame, Ticket, Copy, Check, Clock } from 'lucide-react';
+import { trackCopyVoucher } from '@/lib/analytics';
+
+interface VoucherItem {
+  id: string;
+  code: string;
+  title: string;
+  discount: string;
+  condition: string;
+  tag: string;
+  expires: string;
+}
+
+const HOT_VOUCHERS: VoucherItem[] = [
+  {
+    id: 'v1',
+    code: 'METAPARTNER25',
+    title: 'Voucher Toàn Sàn Đối Tác Meta',
+    discount: 'Giảm 25% (Tối đa 500k)',
+    condition: 'Áp dụng cho mọi đơn hàng khi mở qua ShopeeLink Pro',
+    tag: 'Độc Quyền',
+    expires: 'Hôm nay',
+  },
+  {
+    id: 'v2',
+    code: 'SHOPEEVIDEO15',
+    title: 'Mã Giảm Giá Shopee Video',
+    discount: 'Giảm 15% (Tối đa 70k)',
+    condition: 'Đơn từ 100k, áp dụng hàng thời trang & đời sống',
+    tag: 'Hot Video',
+    expires: 'Còn 12h',
+  },
+  {
+    id: 'v3',
+    code: 'FREESHIPXTRA',
+    title: 'Miễn Phí Vận Chuyển Toàn Quốc',
+    discount: 'Freeship 0đ (Tối đa 300k)',
+    condition: 'Áp dụng cho tất cả gian hàng FreeShip Xtra',
+    tag: 'FreeShip',
+    expires: 'Không giới hạn',
+  },
+  {
+    id: 'v4',
+    code: 'MALLPRO10',
+    title: 'Ưu Đãi Chính Hãng Shopee Mall',
+    discount: 'Giảm 10% (Tối đa 100k)',
+    condition: 'Hàng chính hãng 100% Shopee Mall',
+    tag: 'Chính Hãng',
+    expires: 'Hôm nay',
+  },
+];
+
+export const TopVouchers: React.FC = () => {
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+
+  const handleCopyCode = async (code: string) => {
+    trackCopyVoucher(code);
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopiedCode(code);
+      setTimeout(() => setCopiedCode(null), 2000);
+    } catch {
+      setCopiedCode(code);
+      setTimeout(() => setCopiedCode(null), 2000);
+    }
+  };
+
+  return (
+    <div className="w-full max-w-2xl text-left">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500/10 text-[#EE4D2D]">
+            <Flame className="h-4 w-4" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-white sm:text-lg">Top Mã Giảm Giá Hot Hôm Nay</h3>
+            <p className="text-xs text-slate-400">Tự động kích hoạt khi bấm mở ứng dụng Shopee</p>
+          </div>
+        </div>
+
+        <span className="flex items-center gap-1 rounded-full bg-slate-800/80 px-2.5 py-1 text-[11px] text-slate-400">
+          <Clock className="h-3 w-3 text-orange-400" />
+          <span>Cập nhật liên tục</span>
+        </span>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {HOT_VOUCHERS.map((voucher) => {
+          const isCopied = copiedCode === voucher.code;
+
+          return (
+            <div
+              key={voucher.id}
+              className="glass-panel relative flex flex-col justify-between rounded-2xl p-4 transition-all hover:border-orange-500/40"
+            >
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="rounded-md bg-orange-500/15 px-2 py-0.5 text-[10px] font-bold text-orange-400">
+                    {voucher.tag}
+                  </span>
+                  <span className="text-[10px] text-slate-400">{voucher.expires}</span>
+                </div>
+
+                <div className="mt-2 text-sm font-bold text-slate-100">{voucher.discount}</div>
+                <div className="text-xs text-slate-400">{voucher.title}</div>
+                <div className="mt-1 text-[11px] text-slate-500">{voucher.condition}</div>
+              </div>
+
+              <div className="mt-4 flex items-center justify-between border-t border-slate-800/80 pt-3">
+                <span className="font-mono text-xs font-semibold text-orange-300">{voucher.code}</span>
+                <button
+                  onClick={() => handleCopyCode(voucher.code)}
+                  className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-2.5 py-1 text-[11px] font-medium text-slate-300 transition-colors hover:bg-slate-700 hover:text-white"
+                >
+                  {isCopied ? (
+                    <>
+                      <Check className="h-3 w-3 text-emerald-400" />
+                      <span className="text-emerald-400">Đã lưu</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3 w-3 text-slate-400" />
+                      <span>Chép mã</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};

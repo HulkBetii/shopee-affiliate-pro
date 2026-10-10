@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/sync-reports?sendTelegram=true",
+      "schedule": "0 16 * * *"
+    }
+  ]
+}
