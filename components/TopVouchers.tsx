@@ -76,25 +76,29 @@ export const TopVouchers: React.FC = () => {
             <Flame className="h-4 w-4" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-white sm:text-lg">Top Mã Giảm Giá Hot Hôm Nay</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-bold text-white sm:text-lg">Top Mã Giảm Giá Hot Hôm Nay</h3>
+              <span className="text-[10px] text-orange-400 sm:hidden">(Vuốt xem &rarr;)</span>
+            </div>
             <p className="text-xs text-slate-400">Tự động kích hoạt khi bấm mở ứng dụng Shopee</p>
           </div>
         </div>
 
         <span className="flex items-center gap-1 rounded-full bg-slate-800/80 px-2.5 py-1 text-[11px] text-slate-400">
           <Clock className="h-3 w-3 text-orange-400" />
-          <span>Cập nhật liên tục</span>
+          <span>Mới cập nhật</span>
         </span>
       </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+      {/* Swipeable Carousel on Mobile, 2-col Grid on Desktop */}
+      <div className="mt-4 flex overflow-x-auto snap-x snap-mandatory gap-3 pb-2 no-scrollbar sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0">
         {HOT_VOUCHERS.map((voucher) => {
           const isCopied = copiedCode === voucher.code;
 
           return (
             <div
               key={voucher.id}
-              className="glass-panel relative flex flex-col justify-between rounded-2xl p-4 transition-all hover:border-orange-500/40"
+              className="glass-panel relative flex min-w-[260px] max-w-[280px] shrink-0 snap-start flex-col justify-between rounded-2xl p-4 transition-all hover:border-orange-500/40 sm:min-w-0 sm:max-w-none sm:shrink"
             >
               <div>
                 <div className="flex items-center justify-between">
@@ -113,12 +117,12 @@ export const TopVouchers: React.FC = () => {
                 <span className="font-mono text-xs font-semibold text-orange-300">{voucher.code}</span>
                 <button
                   onClick={() => handleCopyCode(voucher.code)}
-                  className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-2.5 py-1 text-[11px] font-medium text-slate-300 transition-colors hover:bg-slate-700 hover:text-white"
+                  className="inline-flex min-h-[32px] items-center gap-1 rounded-lg bg-slate-800 px-2.5 py-1 text-[11px] font-medium text-slate-300 transition-colors hover:bg-slate-700 hover:text-white active:scale-95"
                 >
                   {isCopied ? (
                     <>
                       <Check className="h-3 w-3 text-emerald-400" />
-                      <span className="text-emerald-400">Đã lưu</span>
+                      <span className="text-emerald-400 font-bold">Đã lưu</span>
                     </>
                   ) : (
                     <>

@@ -97,8 +97,11 @@ export const ConvertForm: React.FC<ConvertFormProps> = ({
                 setInputUrl(e.target.value);
                 if (errorMessage) setErrorMessage(null);
               }}
-              placeholder="Dán link sản phẩm Shopee vào đây... (Ví dụ: https://shopee.vn/product/... hoặc đoạn text copy từ App)"
-              className="w-full resize-none rounded-2xl bg-slate-900/60 p-3.5 pr-10 text-sm text-slate-100 placeholder-slate-500 outline-none transition-colors sm:text-base"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              placeholder="Dán link sản phẩm Shopee vào đây... (Ví dụ: https://s.shopee.vn/... hoặc copy từ nút Chia sẻ trong App)"
+              className="w-full resize-none rounded-2xl bg-slate-900/60 p-3.5 pr-10 text-base text-slate-100 placeholder-slate-500 outline-none transition-colors"
               disabled={isLoading}
             />
 
@@ -110,7 +113,7 @@ export const ConvertForm: React.FC<ConvertFormProps> = ({
                   setInputUrl('');
                   setErrorMessage(null);
                 }}
-                className="absolute right-3 top-3 rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+                className="absolute right-3 top-3 rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
                 title="Xóa nội dung"
               >
                 <X className="h-4 w-4" />
@@ -118,24 +121,24 @@ export const ConvertForm: React.FC<ConvertFormProps> = ({
             )}
           </div>
 
-          {/* Action Row */}
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-2.5">
+          {/* Action Row: Mobile-First Layout */}
+          <div className="mt-3 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
             {/* Nút Dán Clipboard Nhanh */}
             <button
               type="button"
               onClick={handlePasteClipboard}
               disabled={isLoading}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700/80 bg-slate-800/80 px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition-all hover:border-slate-600 hover:bg-slate-700 active:scale-95 disabled:opacity-50"
+              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-slate-700/80 bg-slate-800/80 px-4 py-2.5 text-xs font-semibold text-slate-200 transition-all hover:border-slate-600 hover:bg-slate-700 active:scale-95 disabled:opacity-50 sm:min-h-0 sm:py-2.5"
             >
-              <Clipboard className="h-3.5 w-3.5 text-orange-400" />
-              <span>Dán Nhanh Link</span>
+              <Clipboard className="h-4 w-4 text-orange-400" />
+              <span>Dán Nhanh Từ Clipboard</span>
             </button>
 
             {/* Nút Submit Kích Hoạt Mã */}
             <button
               type="submit"
               disabled={isLoading || !inputUrl.trim()}
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#EE4D2D] via-orange-500 to-amber-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#EE4D2D]/30 transition-all hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 sm:flex-initial sm:px-7"
+              className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#EE4D2D] via-orange-500 to-amber-500 px-6 py-3 text-sm font-extrabold text-white shadow-lg shadow-[#EE4D2D]/30 transition-all hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto sm:py-2.5 sm:text-sm"
             >
               {isLoading ? (
                 <>

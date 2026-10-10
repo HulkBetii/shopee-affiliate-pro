@@ -54,7 +54,7 @@ export default function RootLayout({
 
           <main className="flex-1">{children}</main>
 
-          <footer className="border-t border-slate-800/80 py-6 text-center text-xs text-slate-500">
+          <footer className="border-t border-slate-800/80 py-6 safe-bottom text-center text-xs text-slate-500">
             <p>ShopeeLink Pro &copy; {new Date().getFullYear()} &bull; Hệ thống tối ưu chuyển đổi Affiliate & Săn Voucher</p>
           </footer>
         </div>
