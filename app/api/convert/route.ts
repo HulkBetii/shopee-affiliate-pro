@@ -93,6 +93,8 @@ export async function POST(req: NextRequest) {
       originalUrl: rawInput,
       cleanUrl: parsed.cleanUrl,
       affiliateUrl,
+      itemId: parsed.itemId,
+      shopId: parsed.shopId,
     });
 
     // 5. Lưu vào cache theo cleanUrl (TTL 24 giờ)

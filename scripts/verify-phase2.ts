@@ -78,22 +78,36 @@ async function runPhase2Verification() {
       throw new Error(`Meta voucher params missing: ${withVoucher}`);
     }
 
-    const shim = await createVoucherShim({
+    // Kiểm tra fallback khi không có ID
+    const shimFallback = await createVoucherShim({
       originalUrl: 'https://shopee.vn/product/1/2',
       cleanUrl: 'https://shopee.vn/product/1/2',
       affiliateUrl,
     });
 
-    if (!shim.deepLink.startsWith('shopee://open?url=')) {
-      throw new Error(`Deep link invalid scheme: ${shim.deepLink}`);
+    if (!shimFallback.deepLink.startsWith('shopee://open?url=')) {
+      throw new Error(`Deep link invalid scheme: ${shimFallback.deepLink}`);
     }
 
-    const lookupShim = await getVoucherShimBySlug(shim.slug);
-    if (!lookupShim || lookupShim.slug !== shim.slug) {
-      throw new Error('Failed to retrieve voucher shim by slug');
+    // Kiểm tra custom scheme sản phẩm đích danh khi có itemId & shopId
+    const shimProduct = await createVoucherShim({
+      originalUrl: 'https://shopee.vn/product/123/456',
+      cleanUrl: 'https://shopee.vn/product/123/456',
+      affiliateUrl,
+      itemId: '456',
+      shopId: '123',
+    });
+
+    if (shimProduct.deepLink !== 'shopee://product/123/456') {
+      throw new Error(`Product deep link mismatch: expected shopee://product/123/456, got ${shimProduct.deepLink}`);
     }
 
-    console.log(`✅ [TEST 4/5] Voucher Injection & Universal Deep Link: PASSED (Slug: ${shim.slug})`);
+    const lookupShim = await getVoucherShimBySlug(shimProduct.slug);
+    if (!lookupShim || lookupShim.slug !== shimProduct.slug || lookupShim.itemId !== '456') {
+      throw new Error('Failed to retrieve voucher shim by slug or itemId missing');
+    }
+
+    console.log(`✅ [TEST 4/5] Voucher Injection & Universal Deep Link: PASSED (Slug: ${shimProduct.slug})`);
     passedTests++;
   } catch (err: any) {
     console.error('❌ [TEST 4/5] Voucher Injection: FAILED:', err.message);

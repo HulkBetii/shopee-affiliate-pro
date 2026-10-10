@@ -13,6 +13,8 @@ export interface VoucherShimData {
   discountPercentage: number;
   maxDiscountAmount: string;
   createdAt: number;
+  itemId?: string;
+  shopId?: string;
 }
 
 /**
@@ -42,19 +44,36 @@ export function injectMetaVoucherParams(urlStr: string): string {
 /**
  * Xây dựng Universal Deep Link đánh thức Shopee App trực tiếp
  * @param targetUrl Link sản phẩm đã gắn mã voucher và affiliate
+ * @param options Tùy chọn itemId và shopId để tạo deep link sản phẩm chính xác
  */
-export function buildShopeeDeepLinks(targetUrl: string): {
+export function buildShopeeDeepLinks(
+  targetUrl: string,
+  options?: { itemId?: string; shopId?: string }
+): {
   deepLink: string;
   androidIntent: string;
   metaRefererUrl: string;
 } {
   const encoded = encodeURIComponent(targetUrl);
+  const { itemId, shopId } = options || {};
 
-  // Custom scheme shopee://open?url=...
-  const deepLink = `shopee://open?url=${encoded}`;
+  // Custom scheme: Ưu tiên link đích danh sản phẩm nếu có itemId & shopId
+  // Format: shopee://product/{shopId}/{itemId}
+  // Nếu không có ID, fallback shopee://open?url=...
+  let deepLink: string;
+  if (itemId && shopId) {
+    deepLink = `shopee://product/${shopId}/${itemId}`;
+  } else {
+    deepLink = `shopee://open?url=${encoded}`;
+  }
 
   // Android Intent URI (tự động mở Shopee nếu cài, hoặc mở CH Play / Web)
-  const androidIntent = `intent://open?url=${encoded}#Intent;scheme=shopee;package=com.shopee.vn;S.browser_fallback_url=${encoded};end`;
+  let androidIntent: string;
+  if (itemId && shopId) {
+    androidIntent = `intent://product/${shopId}/${itemId}#Intent;scheme=shopeevn;package=com.shopee.vn;S.browser_fallback_url=${encoded};end`;
+  } else {
+    androidIntent = `intent://open?url=${encoded}#Intent;scheme=shopee;package=com.shopee.vn;S.browser_fallback_url=${encoded};end`;
+  }
 
   // Facebook Link Shim mô phỏng truy cập từ Meta (Facebook/Instagram)
   const metaRefererUrl = `https://l.facebook.com/l.php?u=${encoded}`;
@@ -73,10 +92,15 @@ export async function createVoucherShim(params: {
   originalUrl: string;
   cleanUrl: string;
   affiliateUrl: string;
+  itemId?: string;
+  shopId?: string;
 }): Promise<VoucherShimData> {
   const slug = generateRandomSlug(8);
   const targetWithVoucherUrl = injectMetaVoucherParams(params.affiliateUrl);
-  const { deepLink, androidIntent, metaRefererUrl } = buildShopeeDeepLinks(targetWithVoucherUrl);
+  const { deepLink, androidIntent, metaRefererUrl } = buildShopeeDeepLinks(targetWithVoucherUrl, {
+    itemId: params.itemId,
+    shopId: params.shopId,
+  });
 
   const shimData: VoucherShimData = {
     slug,
@@ -90,6 +114,8 @@ export async function createVoucherShim(params: {
     discountPercentage: 25,
     maxDiscountAmount: '500.000đ',
     createdAt: Date.now(),
+    itemId: params.itemId,
+    shopId: params.shopId,
   };
 
   // Lưu vào cache với key shopee:shim:{slug} (TTL 24 giờ)

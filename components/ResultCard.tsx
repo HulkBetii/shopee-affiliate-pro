@@ -12,12 +12,36 @@ interface ResultCardProps {
 export const ResultCard: React.FC<ResultCardProps> = ({ data }) => {
   const [copied, setCopied] = useState(false);
   const [showStickyBar, setShowStickyBar] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const ctaRef = useRef<HTMLAnchorElement>(null);
+
+  // Nhận diện thiết bị di động
+  useEffect(() => {
+    setIsMobile(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
+  }, []);
 
   // Đường link đầy đủ chuyển tiếp tới Shopee App
   const fullGoUrl = typeof window !== 'undefined'
     ? `${window.location.origin}${data.goUrl}`
     : data.goUrl;
+
+  // Xử lý mở App Shopee thông minh theo từng nền tảng
+  const handleOpenShopeeApp = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    trackOpenShopeeApp(data.slug, data.discountPercentage);
+
+    if (typeof window !== 'undefined') {
+      const ua = navigator.userAgent;
+      const isAndroid = /Android/i.test(ua);
+
+      // Trên Android, ưu tiên Intent URI để OS tự động đánh thức App Shopee
+      if (isAndroid && data.androidIntent) {
+        e.preventDefault();
+        window.location.href = data.androidIntent;
+      }
+      // Trên iOS: Thẻ <a> sử dụng target="_self" dẫn tới Universal Link (targetWithVoucherUrl)
+      // Cử chỉ click trực tiếp của người dùng sẽ kích hoạt iOS mở thẳng Shopee App
+    }
+  };
 
   // Hiển thị Sticky CTA Bar khi nút mở App chính bị cuộn khỏi tầm nhìn
   useEffect(() => {
@@ -114,10 +138,10 @@ export const ResultCard: React.FC<ResultCardProps> = ({ data }) => {
           <div className="mt-5 flex flex-col gap-2.5 sm:mt-6 sm:gap-3">
             <a
               ref={ctaRef}
-              href={data.goUrl}
-              target="_blank"
+              href={data.targetWithVoucherUrl}
+              target={isMobile ? '_self' : '_blank'}
               rel="noopener noreferrer"
-              onClick={() => trackOpenShopeeApp(data.slug, data.discountPercentage)}
+              onClick={handleOpenShopeeApp}
               className="group relative flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#EE4D2D] via-orange-500 to-amber-500 p-3.5 text-center text-base font-black text-white shadow-xl shadow-[#EE4D2D]/35 transition-all hover:scale-[1.01] hover:brightness-110 active:scale-95 sm:text-lg"
             >
               <Tag className="h-5 w-5 transition-transform group-hover:rotate-12" />
@@ -173,10 +197,10 @@ export const ResultCard: React.FC<ResultCardProps> = ({ data }) => {
               <span className="text-[10px] text-slate-400">Tối đa {data.maxDiscountAmount}</span>
             </div>
             <a
-              href={data.goUrl}
-              target="_blank"
+              href={data.targetWithVoucherUrl}
+              target={isMobile ? '_self' : '_blank'}
               rel="noopener noreferrer"
-              onClick={() => trackOpenShopeeApp(data.slug, data.discountPercentage)}
+              onClick={handleOpenShopeeApp}
               className="flex flex-1 min-h-[46px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#EE4D2D] via-orange-500 to-amber-500 px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-[#EE4D2D]/35 active:scale-95"
             >
               <Tag className="h-4 w-4" />
