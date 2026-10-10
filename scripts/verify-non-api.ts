@@ -90,7 +90,7 @@ async function runNonApiVerification() {
       affiliateUrl: trackingLink,
     });
 
-    if (!shim.slug || !shim.deepLink.startsWith('shopee://open?url=')) {
+    if (!shim.slug || !shim.deepLink.startsWith('shopee://web?url=')) {
       throw new Error('Shim generation failed for non-API flow');
     }
 

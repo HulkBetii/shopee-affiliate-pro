@@ -85,7 +85,7 @@ async function runPhase2Verification() {
       affiliateUrl,
     });
 
-    if (!shimFallback.deepLink.startsWith('shopee://open?url=')) {
+    if (!shimFallback.deepLink.startsWith('shopee://web?url=')) {
       throw new Error(`Deep link invalid scheme: ${shimFallback.deepLink}`);
     }
 

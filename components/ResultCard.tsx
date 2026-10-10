@@ -178,6 +178,22 @@ export const ResultCard: React.FC<ResultCardProps> = ({ data }) => {
                 <span>Tiếp Tục Trên Web</span>
               </a>
             </div>
+
+            {/* Trợ giúp Deep Link cho iOS/Android khi Safari chặn Universal Link */}
+            {isMobile && (
+              <div className="pt-1 text-center">
+                <span className="text-[11px] text-slate-400">
+                  Chưa thấy mở App Shopee?{' '}
+                  <a
+                    href={data.deepLink}
+                    onClick={() => trackOpenShopeeApp(data.slug, data.discountPercentage)}
+                    className="font-semibold text-orange-400 underline underline-offset-2 hover:text-orange-300"
+                  >
+                    Bấm vào đây để ép mở App
+                  </a>
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Security & Guarantee Note */}

@@ -33,14 +33,16 @@ const SHORT_LINK_DOMAINS = [
 export function extractUrlFromText(text: string): string | null {
   if (!text || typeof text !== 'string') return null;
 
-  // Regex tìm URL http/https
-  const urlRegex = /(https?:\/\/[^\s"'<>\(\)]+)/i;
+  // Regex tìm URL http/https loại trừ các ký tự phân cách ngoặc
+  const urlRegex = /(https?:\/\/[^\s"'<>\[\]\(\)\{\}]+)/i;
   const match = text.match(urlRegex);
   if (!match) return null;
 
-  // Cắt bỏ dấu chấm, phẩy, ngoặc ở cuối nếu dính vào text
   let extracted = match[1];
-  extracted = extracted.replace(/[.,;!?]+$/, '');
+  // Cắt bỏ dấu chấm, phẩy, ngoặc, ký tự đặc biệt ở cuối nếu dính vào text
+  extracted = extracted.replace(/[.,;!?\\/\\)\]\}>]+$/, '');
+  // Loại bỏ các ký tự non-ASCII / emoji dính liền ở đuôi URL
+  extracted = extracted.replace(/[^\x21-\x7E]+$/, '');
   return extracted;
 }
 
@@ -75,7 +77,7 @@ export function isShopeeShortUrl(urlStr: string): boolean {
  */
 export async function resolveShortUrl(
   shortUrl: string,
-  timeoutMs: number = 5000
+  timeoutMs: number = 4000
 ): Promise<string> {
   if (!isShopeeShortUrl(shortUrl)) {
     return shortUrl;
@@ -136,7 +138,8 @@ export async function resolveShortUrl(
  * Các định dạng hỗ trợ:
  * 1. https://shopee.vn/product/{shopId}/{itemId}
  * 2. https://shopee.vn/{product-slug}-i.{shopId}.{itemId}
- * 3. https://shopee.vn/...?itemid={itemId}&shopid={shopId}
+ * 3. https://shopee.vn/universal-link/product/{shopId}/{itemId}
+ * 4. https://shopee.vn/...?itemid={itemId}&shopid={shopId}
  */
 export function extractShopeeIds(urlStr: string): { itemId?: string; shopId?: string } {
   try {
@@ -154,7 +157,13 @@ export function extractShopeeIds(urlStr: string): { itemId?: string; shopId?: st
       return { shopId: productMatch[1], itemId: productMatch[2] };
     }
 
-    // Cách 3: Query parameters (itemid & shopid)
+    // Cách 3: Format /universal-link/product/{shopId}/{itemId}
+    const universalMatch = url.pathname.match(/\/universal-link\/product\/(\d+)\/(\d+)/);
+    if (universalMatch) {
+      return { shopId: universalMatch[1], itemId: universalMatch[2] };
+    }
+
+    // Cách 4: Query parameters (itemid & shopid)
     const itemIdParam = url.searchParams.get('itemid') || url.searchParams.get('itemId');
     const shopIdParam = url.searchParams.get('shopid') || url.searchParams.get('shopId');
     if (itemIdParam && shopIdParam) {

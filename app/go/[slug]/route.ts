@@ -9,8 +9,40 @@ export async function GET(
   const shim = await getVoucherShimBySlug(slug);
 
   if (!shim) {
-    // Không tìm thấy slug hoặc đã hết hạn -> redirect về trang chủ
-    return NextResponse.redirect(new URL('/', req.url));
+    // Không tìm thấy slug hoặc đã hết hạn -> Trả về giao diện thông báo hết hạn thân thiện
+    const expiredHtml = `<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Liên kết ưu đãi đã hết hạn | ShopeeLink Pro</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: #090d16; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; text-align: center; }
+    .card { background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 36px 24px; max-width: 400px; width: 100%; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6); }
+    .icon { font-size: 44px; margin-bottom: 16px; }
+    h2 { font-size: 20px; font-weight: 800; margin-bottom: 10px; color: #fff; }
+    p { font-size: 14px; color: #94a3b8; line-height: 1.5; margin-bottom: 24px; }
+    .btn { display: block; width: 100%; background: linear-gradient(135deg, #ee4d2d, #ff5722); color: #fff; text-decoration: none; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 15px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">⏰</div>
+    <h2>Liên kết đã hết hạn</h2>
+    <p>Đường link ưu đãi này đã hết hạn lưu trữ bảo mật (24 giờ). Vui lòng dán lại link sản phẩm để kích hoạt mã giảm giá mới nhất.</p>
+    <a href="/" class="btn">TẠO MÃ GIẢM GIÁ MỚI</a>
+  </div>
+</body>
+</html>`;
+    return new NextResponse(expiredHtml, {
+      status: 404,
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'no-store, max-age=0',
+      },
+    });
   }
 
   const {
@@ -112,6 +144,15 @@ export async function GET(
       font-size: 13px;
       font-weight: 600;
     }
+    .fallback-hint {
+      margin-top: 14px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+    .fallback-hint a {
+      color: #ff6b4a;
+      text-decoration: underline;
+    }
     .tip {
       margin-top: 20px;
       padding-top: 16px;
@@ -143,6 +184,10 @@ export async function GET(
     
     <a href="${targetWithVoucherUrl}" class="btn-primary" id="openAppBtn">MỞ APP SHOPEE NGAY</a>
     <a href="${targetWithVoucherUrl}" class="btn-secondary" id="openWebBtn">Tiếp tục trên Trình duyệt Web</a>
+
+    <div class="fallback-hint">
+      Chưa thấy mở App? <a href="${deepLink}" id="forceOpenApp">Bấm để ép mở lại App</a>
+    </div>
 
     <div id="inAppNotice" class="in-app-alert">
       ⚠️ <b>Mẹo mở App Shopee nhanh:</b><br/>

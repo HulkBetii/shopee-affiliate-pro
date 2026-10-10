@@ -10,6 +10,7 @@ export interface VoucherShimData {
   deepLink: string;
   androidIntent: string;
   metaRefererUrl: string;
+  universalLink: string;
   discountPercentage: number;
   maxDiscountAmount: string;
   createdAt: number;
@@ -53,18 +54,19 @@ export function buildShopeeDeepLinks(
   deepLink: string;
   androidIntent: string;
   metaRefererUrl: string;
+  universalLink: string;
 } {
   const encoded = encodeURIComponent(targetUrl);
   const { itemId, shopId } = options || {};
 
   // Custom scheme: Ưu tiên link đích danh sản phẩm nếu có itemId & shopId
   // Format: shopee://product/{shopId}/{itemId}
-  // Nếu không có ID, fallback shopee://open?url=...
+  // Nếu không có ID (link shop, flash sale, live...), dùng in-app router shopee://web?url=...
   let deepLink: string;
   if (itemId && shopId) {
     deepLink = `shopee://product/${shopId}/${itemId}`;
   } else {
-    deepLink = `shopee://open?url=${encoded}`;
+    deepLink = `shopee://web?url=${encoded}`;
   }
 
   // Android Intent URI (tự động mở Shopee nếu cài, hoặc mở CH Play / Web)
@@ -72,7 +74,8 @@ export function buildShopeeDeepLinks(
   if (itemId && shopId) {
     androidIntent = `intent://product/${shopId}/${itemId}#Intent;scheme=shopeevn;package=com.shopee.vn;S.browser_fallback_url=${encoded};end`;
   } else {
-    androidIntent = `intent://open?url=${encoded}#Intent;scheme=shopee;package=com.shopee.vn;S.browser_fallback_url=${encoded};end`;
+    const rawHostAndPath = targetUrl.replace(/^https?:\/\//, '');
+    androidIntent = `intent://${rawHostAndPath}#Intent;scheme=https;package=com.shopee.vn;S.browser_fallback_url=${encoded};end`;
   }
 
   // Facebook Link Shim mô phỏng truy cập từ Meta (Facebook/Instagram)
@@ -82,6 +85,7 @@ export function buildShopeeDeepLinks(
     deepLink,
     androidIntent,
     metaRefererUrl,
+    universalLink: targetUrl,
   };
 }
 
@@ -111,6 +115,7 @@ export async function createVoucherShim(params: {
     deepLink,
     androidIntent,
     metaRefererUrl,
+    universalLink: targetWithVoucherUrl,
     discountPercentage: 25,
     maxDiscountAmount: '500.000đ',
     createdAt: Date.now(),
