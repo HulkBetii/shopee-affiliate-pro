@@ -62,9 +62,8 @@ export const TopVouchers: React.FC = () => {
       await navigator.clipboard.writeText(code);
       setCopiedCode(code);
       setTimeout(() => setCopiedCode(null), 2000);
-    } catch {
-      setCopiedCode(code);
-      setTimeout(() => setCopiedCode(null), 2000);
+    } catch (err) {
+      console.warn('Không thể sao chép mã voucher:', err);
     }
   };
 

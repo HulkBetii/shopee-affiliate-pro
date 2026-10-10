@@ -74,8 +74,8 @@ sequenceDiagram
        shopee://open?url=https%3A%2F%2Fshopee.vn%2Fproduct%2F...%3Futm_source%3Dfacebook%26utm_medium%3Dcpc%26utm_campaign%3Dmeta_collab
        ```
 
-### Module 4: Fallback Bridge Page (`/components/BridgePage.tsx`)
-* **Xử lý WebView TikTok**:
+### Module 4: High-Performance Bridge Page Route (`/app/go/[slug]/route.ts`)
+* **Xử lý WebView TikTok / Facebook**:
   * Khi trang web phát hiện `navigator.userAgent` chứa `TikTok` hoặc `FBAN` (Facebook App):
   * Hiển thị hướng dẫn trực quan:
     * *"Nếu ứng dụng không tự mở: Hãy bấm vào biểu tượng ⋯ ở góc trên bên phải $\rightarrow$ Chọn Mở bằng trình duyệt (Safari / Chrome)"*.

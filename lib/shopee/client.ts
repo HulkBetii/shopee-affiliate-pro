@@ -41,10 +41,21 @@ export class ShopeeClient {
       process.env.SHOPEE_GRAPHQL_ENDPOINT ||
       'https://open-api.affiliate.shopee.vn/graphql';
 
-    // Tự động bật Mock Mode nếu được cấu hình hoặc khi chưa có credentials
+    // Tự động bật Mock Mode: Chỉ bật trong dev/test hoặc khi được chỉ định rõ
+    // TUYỆT ĐỐI KHÔNG tự động bật Mock Mode trên môi trường production
+    const isProd = process.env.NODE_ENV === 'production';
     const envMock = process.env.SHOPEE_MOCK_MODE === 'true';
     const missingKeys = !this.appId || !this.secretKey;
-    this.mockMode = config?.mockMode !== undefined ? config.mockMode : (envMock || missingKeys);
+
+    if (config?.mockMode !== undefined) {
+      this.mockMode = config.mockMode;
+    } else if (isProd) {
+      // Trên production, cấm tự động chuyển sang mock mode khi thiếu keys
+      this.mockMode = false;
+    } else {
+      this.mockMode = envMock || missingKeys;
+    }
+
     this.timeoutMs = config?.timeoutMs || 10000;
   }
 
@@ -60,6 +71,12 @@ export class ShopeeClient {
     variables?: Record<string, unknown>
   ): Promise<T> {
     if (this.mockMode) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new ShopeeApiError(
+          'Mock Mode bị vô hiệu hóa hoàn toàn trên môi trường Production.',
+          'MOCK_NOT_ALLOWED'
+        );
+      }
       return this.handleMockResponse<T>(query, variables);
     }
 
@@ -184,7 +201,7 @@ export class ShopeeClient {
   }
 
   /**
-   * Kéo báo cáo chuyển đổi / hoa hồng (conversionReport)
+   * Kéo báo cáo chuyển đổi / hoa hồng (conversionReport) kèm phân trang đầy đủ
    */
   public async getConversionReport(params: {
     purchaseTimeStart: number;
@@ -193,20 +210,47 @@ export class ShopeeClient {
     orderStatus?: string;
     scrollId?: string;
   }): Promise<ConversionReportData['conversionReport']> {
-    const variables = {
-      purchaseTimeStart: params.purchaseTimeStart,
-      purchaseTimeEnd: params.purchaseTimeEnd,
-      limit: params.limit || 50,
-      orderStatus: params.orderStatus || 'ALL',
-      scrollId: params.scrollId,
+    const allNodes: ConversionReportData['conversionReport']['nodes'] = [];
+    let currentScrollId: string | undefined = params.scrollId;
+    let hasNextPage = true;
+    let iterations = 0;
+    const maxIterations = 20;
+
+    while (hasNextPage && iterations < maxIterations) {
+      iterations++;
+      const variables = {
+        purchaseTimeStart: params.purchaseTimeStart,
+        purchaseTimeEnd: params.purchaseTimeEnd,
+        limit: params.limit || 100,
+        orderStatus: params.orderStatus || 'ALL',
+        scrollId: currentScrollId,
+      };
+
+      const data = await this.executeGraphQL<ConversionReportData>(
+        CONVERSION_REPORT_QUERY,
+        variables
+      );
+
+      const report = data.conversionReport;
+      if (report?.nodes) {
+        allNodes.push(...report.nodes);
+      }
+
+      if (report?.pageInfo?.hasNextPage && report?.pageInfo?.scrollId) {
+        currentScrollId = report.pageInfo.scrollId;
+        hasNextPage = true;
+      } else {
+        hasNextPage = false;
+      }
+    }
+
+    return {
+      nodes: allNodes,
+      pageInfo: {
+        scrollId: currentScrollId,
+        hasNextPage: false,
+      },
     };
-
-    const data = await this.executeGraphQL<ConversionReportData>(
-      CONVERSION_REPORT_QUERY,
-      variables
-    );
-
-    return data.conversionReport;
   }
 
   /**
@@ -261,16 +305,23 @@ export class ShopeeClient {
               checkoutId: 'MOCK_CHECKOUT_001',
               purchaseTime: Math.floor(Date.now() / 1000) - 3600,
               orderStatus: 'COMPLETED',
+              totalCommission: '45000',
               estimatedTotalCommission: '45000',
               grossCommission: '50000',
               cappedCommission: '45000',
               totalBrandCommission: '15000',
               orders: [
                 {
-                  itemId: '22819283712',
-                  itemName: 'Áo Thun Cotton Compact Form Rộng',
-                  itemPrice: '189000',
-                  itemCount: 1,
+                  orderStatus: 'COMPLETED',
+                  items: [
+                    {
+                      itemId: '22819283712',
+                      itemName: 'Áo Thun Cotton Compact Form Rộng',
+                      itemPrice: '189000',
+                      qty: 1,
+                      itemCount: 1,
+                    },
+                  ],
                 },
               ],
             },

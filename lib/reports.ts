@@ -78,31 +78,36 @@ export function aggregateConversionReport(
       statusBreakdown.other++;
     }
 
-    // 2. Tính hoa hồng
-    estimatedTotalCommission += parseFloat(node.estimatedTotalCommission || '0') || 0;
-    grossCommission += parseFloat(node.grossCommission || '0') || 0;
-    cappedCommission += parseFloat(node.cappedCommission || '0') || 0;
+    // 2. Tính hoa hồng (hỗ trợ cả totalCommission chuẩn và estimatedTotalCommission)
+    const commVal = node.totalCommission ?? node.estimatedTotalCommission ?? '0';
+    estimatedTotalCommission += parseFloat(commVal) || 0;
+    grossCommission += parseFloat(node.grossCommission || commVal) || 0;
+    cappedCommission += parseFloat(node.cappedCommission || commVal) || 0;
     totalBrandCommission += parseFloat(node.totalBrandCommission || '0') || 0;
 
-    // 3. Phân tích chi tiết các sản phẩm trong đơn
+    // 3. Phân tích chi tiết các sản phẩm trong đơn (hỗ trợ cả nested items lẫn flat order)
     if (Array.isArray(node.orders)) {
-      for (const orderItem of node.orders) {
-        const price = parseFloat(orderItem.itemPrice || '0') || 0;
-        const count = orderItem.itemCount || 1;
-        const lineSales = price * count;
+      for (const order of node.orders) {
+        const items = Array.isArray(order.items) && order.items.length > 0 ? order.items : [order];
+        for (const orderItem of items) {
+          const itemId = orderItem.itemId || 'unknown';
+          const price = parseFloat(orderItem.itemPrice || '0') || 0;
+          const count = orderItem.qty ?? orderItem.itemCount ?? 1;
+          const lineSales = price * count;
 
-        totalGrossSales += lineSales;
+          totalGrossSales += lineSales;
 
-        const existing = productMap.get(orderItem.itemId);
-        if (existing) {
-          existing.itemCount += count;
-          existing.totalSales += lineSales;
-        } else {
-          productMap.set(orderItem.itemId, {
-            itemName: orderItem.itemName || `Sản phẩm #${orderItem.itemId}`,
-            itemCount: count,
-            totalSales: lineSales,
-          });
+          const existing = productMap.get(itemId);
+          if (existing) {
+            existing.itemCount += count;
+            existing.totalSales += lineSales;
+          } else {
+            productMap.set(itemId, {
+              itemName: orderItem.itemName || `Sản phẩm #${itemId}`,
+              itemCount: count,
+              totalSales: lineSales,
+            });
+          }
         }
       }
     }

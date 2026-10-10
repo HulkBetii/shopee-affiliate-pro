@@ -12,37 +12,60 @@ export interface SyncReportsApiResponse {
   };
 }
 
+import crypto from 'crypto';
+
+/**
+ * So sánh an toàn hằng số thời gian (Timing-Safe Comparison) chống tấn công Timing Attack
+ */
+function timingSafeEqual(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
 /**
  * Kiểm tra mã khóa xác thực bảo vệ Cron Endpoint
  */
-function verifyCronAuth(req: NextRequest): boolean {
+function verifyCronAuth(req: NextRequest): { authorized: boolean; reason?: string; status?: number } {
   const cronSecret = process.env.CRON_SECRET;
+  
   if (!cronSecret) {
-    // Nếu chưa thiết lập CRON_SECRET, cho phép thực thi trong dev/test
-    return true;
+    if (process.env.NODE_ENV === 'production') {
+      return {
+        authorized: false,
+        reason: 'CRON_SECRET chưa được cấu hình trên môi trường production.',
+        status: 503,
+      };
+    }
+    // Ở dev/test môi trường local cho phép chạy nếu chưa cài đặt secret
+    return { authorized: true };
   }
 
-  // 1. Kiểm tra Authorization Header
+  // Bắt buộc sử dụng Authorization Bearer Header - Cấm nhận qua Query Param tránh lọt vào nhật ký access log
   const authHeader = req.headers.get('authorization');
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.replace('Bearer ', '').trim();
-    if (token === cronSecret) return true;
+    if (timingSafeEqual(token, cronSecret)) {
+      return { authorized: true };
+    }
   }
 
-  // 2. Kiểm tra query param ?secret=...
-  const secretParam = req.nextUrl.searchParams.get('secret');
-  if (secretParam === cronSecret) return true;
-
-  return false;
+  return {
+    authorized: false,
+    reason: 'Unauthorized: Header Authorization Bearer token không hợp lệ.',
+    status: 401,
+  };
 }
 
 async function handleSyncReports(req: NextRequest) {
   try {
     // 1. Xác thực bảo mật
-    if (!verifyCronAuth(req)) {
+    const auth = verifyCronAuth(req);
+    if (!auth.authorized) {
       return NextResponse.json<SyncReportsApiResponse>(
-        { success: false, message: 'Unauthorized: CRON_SECRET không hợp lệ.' },
-        { status: 401 }
+        { success: false, message: auth.reason || 'Unauthorized' },
+        { status: auth.status || 401 }
       );
     }
 

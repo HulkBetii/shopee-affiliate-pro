@@ -38,9 +38,8 @@ export const WebViewNotice: React.FC = () => {
         setCopiedLink(true);
         setTimeout(() => setCopiedLink(false), 2000);
       }
-    } catch {
-      setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 2000);
+    } catch (err) {
+      console.warn('Không thể sao chép URL trang:', err);
     }
   };
 

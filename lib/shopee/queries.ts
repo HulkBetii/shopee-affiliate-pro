@@ -56,18 +56,17 @@ query ConversionReport(
     scrollId: $scrollId
   ) {
     nodes {
-      checkoutId
       purchaseTime
       orderStatus
-      estimatedTotalCommission
-      grossCommission
-      cappedCommission
-      totalBrandCommission
+      totalCommission
       orders {
-        itemId
-        itemName
-        itemPrice
-        itemCount
+        orderStatus
+        items {
+          itemId
+          itemName
+          itemPrice
+          qty
+        }
       }
     }
     pageInfo {

@@ -25,8 +25,35 @@ export interface ConvertApiResponse {
   };
 }
 
+const ipRateLimits = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(ip: string, limit = 60, windowMs = 60000): boolean {
+  const now = Date.now();
+  const record = ipRateLimits.get(ip);
+  if (!record || now > record.resetAt) {
+    ipRateLimits.set(ip, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+  if (record.count >= limit) {
+    return false;
+  }
+  record.count++;
+  return true;
+}
+
 export async function POST(req: NextRequest) {
   try {
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    if (!checkRateLimit(ip)) {
+      return NextResponse.json<ConvertApiResponse>(
+        {
+          success: false,
+          message: 'Bạn đã thực hiện quá nhiều yêu cầu trong thời gian ngắn. Vui lòng thử lại sau giây lát.',
+        },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json().catch(() => null);
 
     if (!body || typeof body.url !== 'string' || !body.url.trim()) {
@@ -56,8 +83,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Kiểm tra Cache theo cleanUrl
-    const cacheKey = `shopee:converted:${parsed.cleanUrl}`;
+    // 2. Kiểm tra Cache theo cleanUrl và subIds
+    const subIdsKey = customSubIds.slice().sort().join(',');
+    const cacheKey = `shopee:converted:${parsed.cleanUrl}:${subIdsKey}`;
     const cachedData = await cacheService.get<VoucherShimData>(cacheKey);
 
     if (cachedData) {
@@ -97,8 +125,8 @@ export async function POST(req: NextRequest) {
       shopId: parsed.shopId,
     });
 
-    // 5. Lưu vào cache theo cleanUrl (TTL 24 giờ)
-    await cacheService.set(cacheKey, shim, 86400);
+    // 5. Lưu vào cache theo cleanUrl và subIds (TTL 30 ngày)
+    await cacheService.set(cacheKey, shim, 2592000);
 
     // 6. Trả về kết quả
     return NextResponse.json<ConvertApiResponse>({

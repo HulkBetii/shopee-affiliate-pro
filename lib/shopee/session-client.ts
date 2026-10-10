@@ -64,10 +64,16 @@ export class ShopeeSessionClient {
       });
 
       if (!response.ok) {
+        console.warn(`[ShopeeSessionClient] HTTP ${response.status} ${response.statusText} - Có thể session cookie đã hết hạn.`);
         return null;
       }
 
       const json = await response.json();
+
+      if (json?.code !== 0 && json?.code !== undefined) {
+        console.warn(`[ShopeeSessionClient] API nội bộ trả về mã lỗi: ${json.code} - ${json.msg || json.message || 'Lỗi không xác định'}`);
+        return null;
+      }
 
       // Cấu trúc response tiêu chuẩn: { code: 0, data: { short_link: "https://s.shopee.vn/..." } }
       if (json?.data?.short_link) {
@@ -77,9 +83,10 @@ export class ShopeeSessionClient {
         return json.data.shortLink;
       }
 
+      console.warn('[ShopeeSessionClient] Phản hồi không chứa trường short_link hợp lệ.');
       return null;
-    } catch (err) {
-      // Khi gặp lỗi mạng hoặc session cookie hết hạn, trả về null để fallback an toàn
+    } catch (err: unknown) {
+      console.warn(`[ShopeeSessionClient] Ngoại lệ khi tạo link từ Session Cookie: ${(err as Error)?.message || err}. Fallback sang tầng tiếp theo.`);
       return null;
     } finally {
       clearTimeout(timeout);

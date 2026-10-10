@@ -7,6 +7,13 @@ export interface TelegramSendResult {
   telegramMessageId?: number;
 }
 
+export function escapeTelegramHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 export class TelegramNotifier {
   private botToken: string;
   private chatId: string;
@@ -34,7 +41,7 @@ export class TelegramNotifier {
     const { metrics, statusBreakdown, topProducts, period } = summary;
 
     let msg = `<b>📊 [SHOPEELINK PRO] ĐỐI SOÁT DOANH THU & HOA HỒNG</b>\n`;
-    msg += `<i>📅 Kỳ báo cáo: ${period.formattedRange}</i>\n`;
+    msg += `<i>📅 Kỳ báo cáo: ${escapeTelegramHtml(period.formattedRange)}</i>\n`;
     msg += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
 
     msg += `🛒 <b>Tổng đơn hàng:</b> <code>${metrics.totalOrders} đơn</code>\n`;
@@ -53,7 +60,9 @@ export class TelegramNotifier {
       msg += `\n━━━━━━━━━━━━━━━━━━━━━\n`;
       msg += `🔥 <b>TOP SẢN PHẨM BÁN CHẠY NHẤT:</b>\n`;
       topProducts.forEach((p, idx) => {
-        msg += `${idx + 1}. <b>${p.itemName.slice(0, 35)}...</b>\n`;
+        const cleanName = escapeTelegramHtml(p.itemName.trim());
+        const displayName = cleanName.length > 35 ? `${cleanName.slice(0, 32)}...` : cleanName;
+        msg += `${idx + 1}. <b>${displayName}</b>\n`;
         msg += `   └ Số lượng: <code>${p.itemCount}</code> | Doanh số: <code>${formatVND(p.totalSales)}</code>\n`;
       });
     }

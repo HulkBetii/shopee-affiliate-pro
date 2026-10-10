@@ -26,8 +26,8 @@ async function runNonApiVerification() {
     if (parsed.searchParams.get('af_sub_siteid') !== affiliateId) {
       throw new Error(`af_sub_siteid mismatch: ${parsed.searchParams.get('af_sub_siteid')}`);
     }
-    if (parsed.searchParams.get('utm_source') !== 'facebook' || parsed.searchParams.get('utm_campaign') !== 'meta_collab') {
-      throw new Error('Meta voucher UTM params missing');
+    if (parsed.searchParams.get('utm_source') !== affiliateId || parsed.searchParams.get('utm_campaign') !== 'meta_collab') {
+      throw new Error(`Meta voucher params mismatch: utm_source=${parsed.searchParams.get('utm_source')}, utm_campaign=${parsed.searchParams.get('utm_campaign')}`);
     }
     if (parsed.searchParams.get('sub_id_1') !== 'tiktok_bio') {
       throw new Error('SubID 1 missing');

@@ -186,7 +186,13 @@ export const ResultCard: React.FC<ResultCardProps> = ({ data }) => {
                   Chưa thấy mở App Shopee?{' '}
                   <a
                     href={data.deepLink}
-                    onClick={() => trackOpenShopeeApp(data.slug, data.discountPercentage)}
+                    onClick={(e) => {
+                      trackOpenShopeeApp(data.slug, data.discountPercentage);
+                      if (typeof window !== 'undefined' && /Android/i.test(navigator.userAgent) && data.androidIntent) {
+                        e.preventDefault();
+                        window.location.href = data.androidIntent;
+                      }
+                    }}
                     className="font-semibold text-orange-400 underline underline-offset-2 hover:text-orange-300"
                   >
                     Bấm vào đây để ép mở App

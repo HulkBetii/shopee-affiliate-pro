@@ -101,7 +101,7 @@ export const ConvertForm: React.FC<ConvertFormProps> = ({
               autoCorrect="off"
               spellCheck={false}
               placeholder="Dán link Shopee vào đây (hoặc link chia sẻ từ App)..."
-              className="w-full resize-none rounded-xl bg-slate-900/70 p-3 pr-24 text-sm text-slate-100 placeholder-slate-500 outline-none transition-colors sm:text-base sm:pr-28"
+              className="w-full resize-none rounded-xl bg-slate-900/70 p-3 pr-24 text-[16px] text-slate-100 placeholder-slate-500 outline-none transition-colors sm:text-sm sm:pr-28"
               disabled={isLoading}
             />
 

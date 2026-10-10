@@ -13,6 +13,7 @@
     "test:phase4": "tsx scripts/verify-phase4.ts",
     "test:phase5": "tsx scripts/verify-phase5.ts",
     "test:non-api": "tsx scripts/verify-non-api.ts",
+    "test:real": "tsx scripts/test-real-pipeline.ts",
     "test:all": "tsx scripts/verify-shopee-client.ts && tsx scripts/verify-phase2.ts && tsx scripts/verify-phase3.ts && tsx scripts/verify-phase4.ts && tsx scripts/verify-phase5.ts && tsx scripts/verify-non-api.ts"
   },
   "dependencies": {
@@ -22,7 +23,8 @@
     "next": "^14.2.23",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "tailwind-merge": "^2.6.0"
+    "tailwind-merge": "^2.6.0",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@types/node": "^20.17.10",

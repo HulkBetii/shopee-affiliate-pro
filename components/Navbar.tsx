@@ -14,12 +14,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onScrollToGuide }) => {
         {/* Brand Logo */}
         <div className="flex items-center gap-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-tr from-[#EE4D2D] to-orange-500 text-white shadow-md shadow-[#EE4D2D]/20 sm:h-9 sm:w-9 sm:rounded-xl">
-            <ShoppingBag className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
+            <ShoppingBag className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
           </div>
           <div>
             <div className="flex items-center gap-1.5 font-black tracking-tight text-white text-sm sm:text-base">
               <span>ShopeeLink</span>
-              <span className="rounded bg-gradient-to-r from-[#EE4D2D] to-amber-500 px-1 py-0.2 text-[10px] font-black text-white sm:text-xs">
+              <span className="rounded bg-gradient-to-r from-[#EE4D2D] to-amber-500 px-1 py-0.5 text-[10px] font-black text-white sm:text-xs">
                 PRO
               </span>
             </div>

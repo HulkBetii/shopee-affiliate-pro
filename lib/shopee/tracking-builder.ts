@@ -41,9 +41,8 @@ export function buildAffiliateTrackingUrl(options: TrackingUrlOptions): string {
     }
 
     // 3. Kích hoạt tầng ưu đãi Voucher Meta Collab (20% - 25% tối đa 500k)
+    // LƯU Ý: Tuyệt đối KHÔNG ghi đè utm_source thành 'facebook' để đảm bảo Shopee ghi nhận hoa hồng cho affiliateId
     if (includeMetaVoucher) {
-      url.searchParams.set('utm_source', 'facebook');
-      url.searchParams.set('utm_medium', 'cpc');
       url.searchParams.set('utm_campaign', 'meta_collab');
       url.searchParams.set('af_force_deeplink', 'true');
     }
@@ -52,9 +51,10 @@ export function buildAffiliateTrackingUrl(options: TrackingUrlOptions): string {
   } catch {
     // Fallback nếu cleanUrl không phải URL hợp lệ
     const separator = cleanUrl.includes('?') ? '&' : '?';
-    let fallback = `${cleanUrl}${separator}af_sub_siteid=${affiliateId || 'affiliate_pro'}`;
+    const affId = affiliateId || 'affiliate_pro';
+    let fallback = `${cleanUrl}${separator}af_sub_siteid=${affId}&utm_source=${affId}&mmp_pid=${affId}&utm_medium=affiliates`;
     if (includeMetaVoucher) {
-      fallback += '&utm_source=facebook&utm_campaign=meta_collab&af_force_deeplink=true';
+      fallback += '&utm_campaign=meta_collab&af_force_deeplink=true';
     }
     return fallback;
   }

@@ -35,7 +35,7 @@ export default function HomePage() {
       <Navbar onScrollToGuide={handleScrollToGuide} />
 
       {/* Main Container */}
-      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col items-center px-3 py-3 text-center sm:px-4 sm:py-8">
+      <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col items-center px-3 py-3 text-center sm:px-4 sm:py-8">
         {/* Banner phát hiện TikTok / Facebook In-App WebView (Slim Ticker) */}
         <WebViewNotice />
 
@@ -99,7 +99,7 @@ export default function HomePage() {
         <div className="w-full flex justify-center">
           <TutorialGuide />
         </div>
-      </main>
+      </div>
     </div>
   );
 }

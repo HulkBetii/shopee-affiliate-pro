@@ -74,7 +74,7 @@ async function runPhase2Verification() {
     const affiliateUrl = 'https://s.shopee.vn/test_affiliate_link';
     const withVoucher = injectMetaVoucherParams(affiliateUrl);
 
-    if (!withVoucher.includes('utm_source=facebook') || !withVoucher.includes('meta_collab')) {
+    if (!withVoucher.includes('meta_collab') || !withVoucher.includes('af_force_deeplink')) {
       throw new Error(`Meta voucher params missing: ${withVoucher}`);
     }
 
@@ -102,12 +102,24 @@ async function runPhase2Verification() {
       throw new Error(`Product deep link mismatch: expected shopee://product/123/456, got ${shimProduct.deepLink}`);
     }
 
+    // Kiểm tra Android Intent giữ nguyên HTTPS URL đầy đủ tracking
+    if (!shimProduct.androidIntent.includes('package=com.shopee.vn') || !shimProduct.androidIntent.includes('scheme=https')) {
+      throw new Error(`Android Intent invalid format: ${shimProduct.androidIntent}`);
+    }
+
     const lookupShim = await getVoucherShimBySlug(shimProduct.slug);
     if (!lookupShim || lookupShim.slug !== shimProduct.slug || lookupShim.itemId !== '456') {
       throw new Error('Failed to retrieve voucher shim by slug or itemId missing');
     }
 
-    console.log(`✅ [TEST 4/5] Voucher Injection & Universal Deep Link: PASSED (Slug: ${shimProduct.slug})`);
+    // Kiểm tra Stateless Slug Self-Healing khi Cache Miss (Serverless instance mới)
+    await cacheService.delete(`shopee:shim:${shimProduct.slug}`);
+    const recoveredShim = await getVoucherShimBySlug(shimProduct.slug);
+    if (!recoveredShim || recoveredShim.itemId !== '456' || recoveredShim.shopId !== '123') {
+      throw new Error('Stateless Self-Healing recovery failed when cache is empty');
+    }
+
+    console.log(`✅ [TEST 4/5] Voucher Injection & Stateless Slug Self-Healing: PASSED (Slug: ${shimProduct.slug})`);
     passedTests++;
   } catch (err: any) {
     console.error('❌ [TEST 4/5] Voucher Injection: FAILED:', err.message);

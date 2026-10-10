@@ -7,6 +7,7 @@ interface MemoryCacheItem<T> {
 
 class InMemoryCache {
   private store = new Map<string, MemoryCacheItem<unknown>>();
+  private readonly maxCapacity: number = 2000;
 
   public get<T>(key: string): T | null {
     const item = this.store.get(key);
@@ -17,17 +18,32 @@ class InMemoryCache {
       return null;
     }
 
+    // Refresh vị trí trong Map (LRU)
+    this.store.delete(key);
+    this.store.set(key, item);
+
     return item.value as T;
   }
 
   public set<T>(key: string, value: T, ttlSeconds: number = 86400): void {
     const expiresAt = Date.now() + ttlSeconds * 1000;
-    this.store.set(key, { value, expiresAt });
 
-    // Dọn dẹp key hết hạn nếu store quá lớn (>1000 items)
-    if (this.store.size > 1000) {
+    if (this.store.has(key)) {
+      this.store.delete(key);
+    } else if (this.store.size >= this.maxCapacity) {
       this.cleanup();
+      // Nếu sau khi dọn key hết hạn mà vẫn đầy, xóa key cũ nhất (đầu Map)
+      while (this.store.size >= this.maxCapacity) {
+        const oldestKey = this.store.keys().next().value;
+        if (oldestKey) {
+          this.store.delete(oldestKey);
+        } else {
+          break;
+        }
+      }
     }
+
+    this.store.set(key, { value, expiresAt });
   }
 
   public delete(key: string): void {

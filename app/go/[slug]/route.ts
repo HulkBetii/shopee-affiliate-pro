@@ -1,6 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getVoucherShimBySlug } from '@/lib/shopee/voucher-shim';
 
+function escapeHtmlAttr(str: string): string {
+  return (str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function escapeHtmlText(str: string): string {
+  return (str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: { slug: string } }
@@ -14,7 +30,7 @@ export async function GET(
 <html lang="vi">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="robots" content="noindex, nofollow">
   <title>Liên kết ưu đãi đã hết hạn | ShopeeLink Pro</title>
   <style>
@@ -58,7 +74,7 @@ export async function GET(
 <html lang="vi">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="robots" content="noindex, nofollow">
   <title>Đang chuyển hướng tới Shopee...</title>
   <style>
@@ -177,16 +193,16 @@ export async function GET(
 </head>
 <body>
   <div class="card">
-    <div class="badge">🎁 Voucher Giảm ${discountPercentage}% (Tối đa ${maxDiscountAmount})</div>
+    <div class="badge">🎁 Voucher Giảm ${escapeHtmlText(String(discountPercentage))}% (Tối đa ${escapeHtmlText(maxDiscountAmount)})</div>
     <div class="spinner"></div>
     <h2>Đang Mở Ứng Dụng Shopee</h2>
     <p>Hệ thống đang tự động kích hoạt mã ưu đãi độc quyền cho đơn hàng của bạn...</p>
     
-    <a href="${targetWithVoucherUrl}" class="btn-primary" id="openAppBtn">MỞ APP SHOPEE NGAY</a>
-    <a href="${targetWithVoucherUrl}" class="btn-secondary" id="openWebBtn">Tiếp tục trên Trình duyệt Web</a>
+    <a href="${escapeHtmlAttr(targetWithVoucherUrl)}" class="btn-primary" id="openAppBtn">MỞ APP SHOPEE NGAY</a>
+    <a href="${escapeHtmlAttr(targetWithVoucherUrl)}" class="btn-secondary" id="openWebBtn">Tiếp tục trên Trình duyệt Web</a>
 
     <div class="fallback-hint">
-      Chưa thấy mở App? <a href="${deepLink}" id="forceOpenApp">Bấm để ép mở lại App</a>
+      Chưa thấy mở App? <a href="${escapeHtmlAttr(deepLink)}" id="forceOpenApp">Bấm để ép mở lại App</a>
     </div>
 
     <div id="inAppNotice" class="in-app-alert">
@@ -201,9 +217,9 @@ export async function GET(
 
   <script>
     (function() {
-      var targetUrl = ${JSON.stringify(targetWithVoucherUrl)};
-      var deepLink = ${JSON.stringify(deepLink)};
-      var androidIntent = ${JSON.stringify(androidIntent)};
+      var targetUrl = ${JSON.stringify(targetWithVoucherUrl).replace(/</g, '\\u003c')};
+      var deepLink = ${JSON.stringify(deepLink).replace(/</g, '\\u003c')};
+      var androidIntent = ${JSON.stringify(androidIntent).replace(/</g, '\\u003c')};
 
       var ua = navigator.userAgent;
       var isIOS = /iPhone|iPad|iPod/i.test(ua);

@@ -73,13 +73,14 @@ export function isShopeeShortUrl(urlStr: string): boolean {
 }
 
 /**
- * Phân giải link rút gọn (s.shopee.vn, vn.shp.ee, shope.ee) thành link đích thực sự
+ * Phân giải link rút gọn (s.shopee.vn, vn.shp.ee, shope.ee) thành link đích thực sự (tối đa 3 cấp đệ quy)
  */
 export async function resolveShortUrl(
   shortUrl: string,
-  timeoutMs: number = 4000
+  timeoutMs: number = 4000,
+  depth: number = 0
 ): Promise<string> {
-  if (!isShopeeShortUrl(shortUrl)) {
+  if (!isShopeeShortUrl(shortUrl) || depth >= 3) {
     return shortUrl;
   }
 
@@ -102,9 +103,9 @@ export async function resolveShortUrl(
     if (location) {
       // Location có thể là relative hoặc absolute
       const resolved = new URL(location, shortUrl).toString();
-      // Nếu location vẫn là short link khác, có thể resolve tiếp (hỗ trợ 1 cấp redirect)
+      // Nếu location vẫn là short link khác, có thể resolve tiếp (hỗ trợ tối đa 3 cấp redirect)
       if (isShopeeShortUrl(resolved) && resolved !== shortUrl) {
-        return resolveShortUrl(resolved, timeoutMs);
+        return resolveShortUrl(resolved, timeoutMs, depth + 1);
       }
       return resolved;
     }
@@ -177,7 +178,7 @@ export function extractShopeeIds(urlStr: string): { itemId?: string; shopId?: st
 }
 
 /**
- * Làm sạch URL Shopee: Loại bỏ toàn bộ tham số tracking rác
+ * Làm sạch URL Shopee: Loại bỏ toàn bộ tham số tracking rác của affiliate khác
  */
 export function sanitizeShopeeUrl(urlStr: string): string {
   try {
@@ -189,7 +190,7 @@ export function sanitizeShopeeUrl(urlStr: string): string {
       return `https://shopee.vn/product/${shopId}/${itemId}`;
     }
 
-    // Nếu không có itemId/shopId, giữ lại pathname và loại bỏ các params tracking
+    // Nếu không có itemId/shopId, giữ lại pathname và lọc sạch toàn bộ tracking đối thủ
     const cleanParams = new URLSearchParams();
     const trackingBlacklist = [
       'sp_atk',
@@ -203,6 +204,20 @@ export function sanitizeShopeeUrl(urlStr: string): string {
       'fbclid',
       'af_sub_siteid',
       'smtt',
+      'mmp_pid',
+      'aff_click_id',
+      'uls_trackid',
+      'sub_id_1',
+      'sub_id_2',
+      'sub_id_3',
+      'sub_id_4',
+      'sub_id_5',
+      'is_from_signup',
+      'deep_and_deferred',
+      'af_force_deeplink',
+      'share_channel_code',
+      'pid',
+      'c',
     ];
 
     parsed.searchParams.forEach((val, key) => {
@@ -248,6 +263,23 @@ export async function parseShopeeInput(rawInput: string): Promise<ParsedShopeeIn
 
   const isShort = isShopeeShortUrl(extracted);
   const resolved = isShort ? await resolveShortUrl(extracted) : extracted;
+
+  // Phát hiện trang báo lỗi Shopee hoặc link rút gọn đã chết
+  if (
+    resolved.includes('/error_page') ||
+    resolved.includes('/universal-link/error') ||
+    resolved.includes('/universal_link_error')
+  ) {
+    return {
+      isValid: false,
+      rawUrl: extracted,
+      resolvedUrl: resolved,
+      cleanUrl: resolved,
+      isShortLink: isShort,
+      error: 'Đường link Shopee không tồn tại hoặc đã hết hạn trên sàn.',
+    };
+  }
+
   const { itemId, shopId } = extractShopeeIds(resolved);
   const clean = sanitizeShopeeUrl(resolved);
 

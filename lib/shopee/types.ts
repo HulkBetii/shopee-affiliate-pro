@@ -83,18 +83,30 @@ export interface ConversionOrderItem {
   itemId: string;
   itemName: string;
   itemPrice: string;
-  itemCount: number;
+  qty?: number;
+  itemCount?: number;
+}
+
+export interface ConversionSubOrder {
+  orderStatus?: string;
+  items?: ConversionOrderItem[];
+  itemId?: string;
+  itemName?: string;
+  itemPrice?: string;
+  itemCount?: number;
+  qty?: number;
 }
 
 export interface ConversionReportNode {
-  checkoutId: string;
+  checkoutId?: string;
   purchaseTime: number;
   orderStatus: string;
-  estimatedTotalCommission: string;
-  grossCommission: string;
-  cappedCommission: string;
-  totalBrandCommission: string;
-  orders: ConversionOrderItem[];
+  totalCommission?: string;
+  estimatedTotalCommission?: string;
+  grossCommission?: string;
+  cappedCommission?: string;
+  totalBrandCommission?: string;
+  orders: ConversionSubOrder[];
 }
 
 export interface ConversionReportData {
