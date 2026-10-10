@@ -14,7 +14,11 @@ export class ShopeeSessionClient {
   private timeoutMs: number;
 
   constructor(sessionCookie?: string, timeoutMs: number = 8000) {
-    this.sessionCookie = sessionCookie || process.env.SHOPEE_SESSION_COOKIE || '';
+    this.sessionCookie =
+      sessionCookie ||
+      process.env.SHOPEE_SESSION_COOKIE ||
+      process.env.SHOPEE_COOKIE ||
+      '';
     this.timeoutMs = timeoutMs;
   }
 
@@ -37,16 +41,36 @@ export class ShopeeSessionClient {
     const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
 
     try {
-      // Endpoint nội bộ của Shopee Console Custom Link
-      const endpoint = 'https://affiliate.shopee.vn/api/v1/custom_link/create';
+      // Endpoint GraphQL nội bộ của Shopee Console Custom Link (v3)
+      const endpoint = 'https://affiliate.shopee.vn/api/v3/gql';
+      const query = `
+        mutation batchGetCustomLink($linkParams: [CustomLinkParam!], $sourceCaller: SourceCaller){
+          batchCustomLink(linkParams: $linkParams, sourceCaller: $sourceCaller){
+            shortLink
+            longLink
+            failCode
+          }
+        }
+      `.trim();
 
       const payload = {
-        origin_url: originUrl,
-        sub_id_1: subIds?.[0] || 'tiktok_bio',
-        sub_id_2: subIds?.[1] || 'shopeelink_web',
-        sub_id_3: subIds?.[2] || '',
-        sub_id_4: subIds?.[3] || '',
-        sub_id_5: subIds?.[4] || '',
+        operationName: 'batchGetCustomLink',
+        query,
+        variables: {
+          linkParams: [
+            {
+              originalLink: originUrl,
+              advancedLinkParams: {
+                subId1: subIds?.[0] || 'tiktok_bio',
+                subId2: subIds?.[1] || 'shopeelink_web',
+                subId3: subIds?.[2] || '',
+                subId4: subIds?.[3] || '',
+                subId5: subIds?.[4] || '',
+              },
+            },
+          ],
+          sourceCaller: 'CUSTOM_LINK_CALLER',
+        },
       };
 
       const response = await fetch(endpoint, {
@@ -58,32 +82,32 @@ export class ShopeeSessionClient {
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
           'Referer': 'https://affiliate.shopee.vn/offer/custom_link',
           'Origin': 'https://affiliate.shopee.vn',
+          'X-Api-Source': 'pc',
         },
         body: JSON.stringify(payload),
         signal: controller.signal,
       });
 
       if (!response.ok) {
-        console.warn(`[ShopeeSessionClient] HTTP ${response.status} ${response.statusText} - Có thể session cookie đã hết hạn.`);
+        console.warn(`[ShopeeSessionClient] HTTP ${response.status} ${response.statusText} - Có thể session cookie cần refresh hoặc bị Shopee WAF chặn.`);
         return null;
       }
 
       const json = await response.json();
 
-      if (json?.code !== 0 && json?.code !== undefined) {
-        console.warn(`[ShopeeSessionClient] API nội bộ trả về mã lỗi: ${json.code} - ${json.msg || json.message || 'Lỗi không xác định'}`);
-        return null;
+      const shortLink =
+        json?.data?.batchCustomLink?.[0]?.shortLink ||
+        json?.data?.short_link ||
+        json?.data?.shortLink;
+
+      if (shortLink) {
+        return shortLink;
       }
 
-      // Cấu trúc response tiêu chuẩn: { code: 0, data: { short_link: "https://s.shopee.vn/..." } }
-      if (json?.data?.short_link) {
-        return json.data.short_link;
-      }
-      if (json?.data?.shortLink) {
-        return json.data.shortLink;
+      if (json?.error) {
+        console.warn(`[ShopeeSessionClient] API nội bộ trả về mã lỗi: ${json.error}`);
       }
 
-      console.warn('[ShopeeSessionClient] Phản hồi không chứa trường short_link hợp lệ.');
       return null;
     } catch (err: unknown) {
       console.warn(`[ShopeeSessionClient] Ngoại lệ khi tạo link từ Session Cookie: ${(err as Error)?.message || err}. Fallback sang tầng tiếp theo.`);
