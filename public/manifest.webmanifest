@@ -1,0 +1,27 @@
+{
+  "name": "ShopeeLink Pro - Săn Voucher 25%",
+  "short_name": "ShopeeLink",
+  "description": "Dán link Shopee - Tự động kích hoạt mã giảm giá 25% và mở thẳng App Shopee",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#090d16",
+  "theme_color": "#EE4D2D",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "share_target": {
+    "action": "/",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
+}

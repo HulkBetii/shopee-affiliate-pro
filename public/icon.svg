@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EE4D2D" />
+      <stop offset="50%" stop-color="#FF6333" />
+      <stop offset="100%" stop-color="#FA8C16" />
+    </linearGradient>
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background Rounded Rect -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+  <rect width="512" height="512" rx="112" fill="url(#glowGrad)" />
+
+  <!-- Shopping Bag / Ticket Icon in White -->
+  <g transform="translate(106, 106)" fill="none" stroke="#FFFFFF" stroke-width="28" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Bag Shape -->
+    <path d="M40 90 L260 90 L280 270 C280 282 270 292 258 292 L42 292 C30 292 20 282 20 270 Z" />
+    <!-- Bag Handle -->
+    <path d="M100 90 C100 40 200 40 200 90" />
+    <!-- Flame / Lightning in Bag Center -->
+    <path d="M150 140 L125 195 L165 195 L135 250 L185 185 L145 185 Z" fill="#FFFFFF" stroke="none" />
+  </g>
+</svg>

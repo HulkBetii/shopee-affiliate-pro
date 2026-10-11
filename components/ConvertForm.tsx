@@ -9,16 +9,26 @@ interface ConvertFormProps {
   onSuccess: (data: NonNullable<ConvertApiResponse['data']>) => void;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
+  initialUrl?: string;
 }
 
 export const ConvertForm: React.FC<ConvertFormProps> = ({
   onSuccess,
   isLoading,
   setIsLoading,
+  initialUrl,
 }) => {
   const [inputUrl, setInputUrl] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Tự động kích hoạt khi có initialUrl truyền vào (từ Web Share Target hoặc Clipboard Detector)
+  React.useEffect(() => {
+    if (initialUrl && initialUrl.trim() && initialUrl !== inputUrl) {
+      setInputUrl(initialUrl.trim());
+      triggerConvert(initialUrl.trim());
+    }
+  }, [initialUrl]);
 
   // Xử lý nút "Dán nhanh" từ Clipboard
   const handlePasteClipboard = async () => {

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Analytics } from '@/components/Analytics';
+import { PwaRegister } from '@/components/PwaRegister';
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://shopee.mrhulkstore.store';
 
@@ -8,6 +9,16 @@ export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: 'ShopeeLink Pro - Săn Voucher 25% Shopee | MrHulk Store',
   description: 'Dán link Shopee bất kỳ để nhận ngay mã giảm giá 20-25% tối đa 500k. Đánh thức trực tiếp App Shopee, mua sắm an toàn không lo kẹt trình duyệt.',
+  manifest: '/manifest.webmanifest',
+  icons: {
+    icon: '/icon.svg',
+    apple: '/icon.svg',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'ShopeeLink Pro',
+  },
   keywords: [
     'shopee affiliate',
     'mã giảm giá shopee',
@@ -54,10 +65,16 @@ export default function RootLayout({
 
           <main className="flex-1">{children}</main>
 
-          <footer className="border-t border-slate-800/80 py-6 safe-bottom text-center text-xs text-slate-500">
-            <p>ShopeeLink Pro &copy; {new Date().getFullYear()} &bull; Hệ thống tối ưu chuyển đổi Affiliate & Săn Voucher</p>
+          <footer className="border-t border-slate-800/80 py-6 safe-bottom text-center text-xs text-slate-500 px-4">
+            <p className="font-semibold text-slate-400">ShopeeLink Pro &copy; {new Date().getFullYear()} &bull; Hệ thống tối ưu chuyển đổi Affiliate & Săn Voucher</p>
+            <p className="mt-1.5 text-[11px] text-slate-400 max-w-xl mx-auto leading-relaxed">
+              * Ưu đãi đối tác 25% (tối đa 500k) được kích hoạt tự động theo ngân sách khuyến mãi và điều kiện từng ngành hàng của Shopee. Mức giảm thực tế căn cứ theo giỏ hàng tại bước thanh toán trong App Shopee.
+            </p>
           </footer>
         </div>
+
+        {/* PWA Service Worker Registration */}
+        <PwaRegister />
 
         {/* Third-party Analytics (GA4 & TikTok Pixel) */}
         <Analytics />

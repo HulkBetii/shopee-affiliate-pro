@@ -281,6 +281,11 @@ export const ResultCard: React.FC<ResultCardProps> = ({ data }) => {
             <ShieldCheck className="h-4 w-4 flex-shrink-0 text-emerald-400" />
             <span>Thanh toán trực tiếp trong Shopee App &bull; Giữ nguyên bảo hành chính hãng</span>
           </div>
+
+          {/* Minh Bạch ToS Shopee */}
+          <div className="mt-2 text-center text-[10px] text-slate-400 leading-relaxed border-t border-slate-800/60 pt-2">
+            * Mức giảm 25% (tối đa {data.maxDiscountAmount}) được kích hoạt tự động theo ngân sách đối tác và điều kiện ngành hàng của Shopee. Mức giảm thực tế căn cứ theo giỏ hàng tại bước thanh toán trong App.
+          </div>
         </div>
       </div>
 

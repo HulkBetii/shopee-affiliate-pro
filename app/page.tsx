@@ -7,18 +7,24 @@ import { LiveSaleTicker } from '@/components/LiveSaleTicker';
 import { ConvertForm } from '@/components/ConvertForm';
 import { ResultCard } from '@/components/ResultCard';
 import { TopVouchers } from '@/components/TopVouchers';
+import { RecentConversions } from '@/components/RecentConversions';
 import { TutorialGuide } from '@/components/TutorialGuide';
 import { SocialProofToast } from '@/components/SocialProofToast';
+import { ClipboardDetector } from '@/components/ClipboardDetector';
 import { Sparkles } from 'lucide-react';
 import { ConvertApiResponse } from '@/app/api/convert/route';
 import { getDynamicSocialProofCount } from '@/lib/marketing/time-slots';
+import { saveRecentConversion } from '@/lib/marketing/recent-history';
 
 export default function HomePage() {
   const [result, setResult] = useState<ConvertApiResponse['data'] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [socialCount, setSocialCount] = useState<number>(1482);
+  const [initialUrl, setInitialUrl] = useState<string>('');
+  const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState<number>(0);
   const resultRef = useRef<HTMLDivElement>(null);
 
+  // Khởi tạo số người săn sale động
   useEffect(() => {
     setSocialCount(getDynamicSocialProofCount());
     const interval = setInterval(() => {
@@ -27,8 +33,37 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Xử lý Web Share Target API khi người dùng chia sẻ từ App Shopee sang Web
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const sharedUrl = params.get('url') || params.get('text');
+      if (
+        sharedUrl &&
+        (sharedUrl.includes('shopee.vn') || sharedUrl.includes('shp.ee') || sharedUrl.includes('s.shopee.vn'))
+      ) {
+        setInitialUrl(sharedUrl.trim());
+      }
+    }
+  }, []);
+
   const handleConvertSuccess = (data: NonNullable<ConvertApiResponse['data']>) => {
     setResult(data);
+
+    // Lưu vào lịch sử săn sale cá nhân (LocalStorage)
+    saveRecentConversion({
+      cleanUrl: data.cleanUrl,
+      slug: data.slug,
+      goUrl: data.goUrl,
+      targetWithVoucherUrl: data.targetWithVoucherUrl,
+      androidIntent: data.androidIntent,
+      deepLink: data.deepLink,
+      discountPercentage: data.discountPercentage,
+      maxDiscountAmount: data.maxDiscountAmount,
+      itemId: data.itemId,
+    });
+    setHistoryRefreshTrigger((prev) => prev + 1);
+
     setTimeout(() => {
       resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }, 100);
@@ -43,6 +78,12 @@ export default function HomePage() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      {/* 1-Tap Clipboard Auto-Detect Toast */}
+      <ClipboardDetector
+        onSelectUrl={(url) => setInitialUrl(url)}
+        currentConvertedUrl={result?.cleanUrl}
+      />
+
       {/* Navbar Header */}
       <Navbar onScrollToGuide={handleScrollToGuide} />
 
@@ -76,12 +117,13 @@ export default function HomePage() {
           <LiveSaleTicker />
         </div>
 
-        {/* Form Dán Link 1-Click (Nằm trọn trong màn hình đầu tiên) */}
+        {/* Form Dán Link 1-Click (Hỗ trợ tự động điền từ Share Target hoặc Clipboard) */}
         <div className="mt-3 w-full flex justify-center sm:mt-4">
           <ConvertForm
             onSuccess={handleConvertSuccess}
             isLoading={isLoading}
             setIsLoading={setIsLoading}
+            initialUrl={initialUrl}
           />
         </div>
 
@@ -109,6 +151,11 @@ export default function HomePage() {
         {/* Widget Top Voucher Hot (Xoay theo phiên tự động) */}
         <div className="w-full flex justify-center">
           <TopVouchers />
+        </div>
+
+        {/* Lịch Sử Săn Sale Cá Nhân (Recent Conversions) */}
+        <div className="w-full flex justify-center mt-5">
+          <RecentConversions refreshTrigger={historyRefreshTrigger} />
         </div>
 
         {/* Divider */}
