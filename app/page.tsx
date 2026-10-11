@@ -1,19 +1,31 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { WebViewNotice } from '@/components/WebViewNotice';
+import { LiveSaleTicker } from '@/components/LiveSaleTicker';
 import { ConvertForm } from '@/components/ConvertForm';
 import { ResultCard } from '@/components/ResultCard';
 import { TopVouchers } from '@/components/TopVouchers';
 import { TutorialGuide } from '@/components/TutorialGuide';
-import { Sparkles, ShoppingBag, ShieldCheck, Zap } from 'lucide-react';
+import { SocialProofToast } from '@/components/SocialProofToast';
+import { Sparkles } from 'lucide-react';
 import { ConvertApiResponse } from '@/app/api/convert/route';
+import { getDynamicSocialProofCount } from '@/lib/marketing/time-slots';
 
 export default function HomePage() {
   const [result, setResult] = useState<ConvertApiResponse['data'] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [socialCount, setSocialCount] = useState<number>(1482);
   const resultRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setSocialCount(getDynamicSocialProofCount());
+    const interval = setInterval(() => {
+      setSocialCount(getDynamicSocialProofCount());
+    }, 45000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleConvertSuccess = (data: NonNullable<ConvertApiResponse['data']>) => {
     setResult(data);
@@ -59,8 +71,13 @@ export default function HomePage() {
           </p>
         </div>
 
+        {/* Live Sale Ticker (Phiên Săn Sale Hiện Tại & Đồng Hồ Đếm Ngược) */}
+        <div className="mt-3.5 w-full flex justify-center">
+          <LiveSaleTicker />
+        </div>
+
         {/* Form Dán Link 1-Click (Nằm trọn trong màn hình đầu tiên) */}
-        <div className="mt-3 w-full flex justify-center sm:mt-5">
+        <div className="mt-3 w-full flex justify-center sm:mt-4">
           <ConvertForm
             onSuccess={handleConvertSuccess}
             isLoading={isLoading}
@@ -68,13 +85,15 @@ export default function HomePage() {
           />
         </div>
 
-        {/* Social Proof Ticker */}
+        {/* Dynamic Social Proof Ticker */}
         <div className="mt-2.5 flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75"></span>
             <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500"></span>
           </span>
-          <span>🔥 <strong>1.482</strong> người đã áp mã thành công hôm nay</span>
+          <span>
+            🔥 <strong>{new Intl.NumberFormat('vi-VN').format(socialCount)}</strong> người đã áp mã thành công hôm nay
+          </span>
         </div>
 
         {/* Result Card khi convert thành công */}
@@ -87,7 +106,7 @@ export default function HomePage() {
         {/* Divider */}
         <div className="my-5 h-px w-full max-w-2xl bg-gradient-to-r from-transparent via-slate-800 to-transparent sm:my-8" />
 
-        {/* Widget Top Voucher Hot */}
+        {/* Widget Top Voucher Hot (Xoay theo phiên tự động) */}
         <div className="w-full flex justify-center">
           <TopVouchers />
         </div>
@@ -100,6 +119,9 @@ export default function HomePage() {
           <TutorialGuide />
         </div>
       </div>
+
+      {/* Floating Social Proof Toast (Thông Báo Chốt Đơn Động) */}
+      <SocialProofToast />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ExternalLink, Copy, Check, Sparkles, Tag, ShieldCheck, ArrowUpRight, CheckCircle2 } from 'lucide-react';
+import { ExternalLink, Copy, Check, Sparkles, Tag, ShieldCheck, ArrowUpRight, CheckCircle2, Calculator, Coins } from 'lucide-react';
 import { ConvertApiResponse } from '@/app/api/convert/route';
 import { trackOpenShopeeApp, trackCopyLink } from '@/lib/analytics';
 
@@ -9,16 +9,34 @@ interface ResultCardProps {
   data: NonNullable<ConvertApiResponse['data']>;
 }
 
+const SAMPLE_PRICES = [
+  { label: '150k', value: 150000 },
+  { label: '250k', value: 250000 },
+  { label: '500k', value: 500000 },
+  { label: '1.000k', value: 1000000 },
+];
+
 export const ResultCard: React.FC<ResultCardProps> = ({ data }) => {
   const [copied, setCopied] = useState(false);
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [selectedPrice, setSelectedPrice] = useState(250000);
   const ctaRef = useRef<HTMLAnchorElement>(null);
 
   // Nhận diện thiết bị di động
   useEffect(() => {
     setIsMobile(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
   }, []);
+
+  // Tính toán số tiền tiết kiệm
+  const discountRate = (data.discountPercentage || 25) / 100;
+  // Max discount 500k
+  const calculatedDiscount = Math.min(500000, Math.round(selectedPrice * discountRate));
+  const finalPrice = Math.max(0, selectedPrice - calculatedDiscount);
+
+  const formatVND = (num: number) => {
+    return new Intl.NumberFormat('vi-VN').format(num) + 'đ';
+  };
 
   // Đường link đầy đủ chuyển tiếp tới Shopee App
   const fullGoUrl = typeof window !== 'undefined'
@@ -113,8 +131,64 @@ export const ResultCard: React.FC<ResultCardProps> = ({ data }) => {
             </div>
           </div>
 
+          {/* BẢNG TÍNH TIẾT KIỆM TRỰC QUAN (SAVINGS CALCULATOR) */}
+          <div className="mt-4 overflow-hidden rounded-2xl border border-emerald-500/30 bg-gradient-to-b from-slate-950/90 to-slate-900/90 p-3.5 text-left shadow-inner">
+            <div className="flex items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
+              <div className="flex items-center gap-2">
+                <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400">
+                  <Calculator className="h-3.5 w-3.5" />
+                </div>
+                <span className="text-xs font-bold text-slate-200">Bảng Tính Tiết Kiệm Trực Quan</span>
+              </div>
+              <div className="flex items-center gap-1 text-[11px] text-slate-400">
+                <span>Chọn đơn:</span>
+                {SAMPLE_PRICES.map((p) => (
+                  <button
+                    key={p.value}
+                    onClick={() => setSelectedPrice(p.value)}
+                    className={`rounded px-1.5 py-0.5 text-[10px] font-semibold transition-colors ${
+                      selectedPrice === p.value
+                        ? 'bg-orange-500 text-white'
+                        : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200'
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-3 grid grid-cols-3 items-center gap-2 text-center">
+              <div className="rounded-xl bg-slate-900/80 p-2 border border-slate-800/60">
+                <div className="text-[10px] text-slate-400">Giá gốc tham khảo</div>
+                <div className="mt-0.5 font-mono text-xs font-bold text-slate-400 line-through">
+                  {formatVND(selectedPrice)}
+                </div>
+              </div>
+
+              <div className="rounded-xl bg-orange-950/40 p-2 border border-orange-500/30">
+                <div className="text-[10px] text-orange-300 font-medium">Mã giảm {data.discountPercentage}%</div>
+                <div className="mt-0.5 font-mono text-xs font-extrabold text-[#EE4D2D]">
+                  -{formatVND(calculatedDiscount)}
+                </div>
+              </div>
+
+              <div className="rounded-xl bg-emerald-950/40 p-2 border border-emerald-500/40">
+                <div className="text-[10px] text-emerald-300 font-bold">Giá thanh toán</div>
+                <div className="mt-0.5 font-mono text-xs font-black text-emerald-400 sm:text-sm">
+                  {formatVND(finalPrice)}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-2 text-center text-[10px] text-slate-400 flex items-center justify-center gap-1">
+              <Coins className="h-3 w-3 text-amber-400" />
+              <span>Tiết kiệm ngay <strong>{formatVND(calculatedDiscount)}</strong> khi áp mã tại bước thanh toán App Shopee</span>
+            </div>
+          </div>
+
           {/* 3 Bước Áp Mã Trong 5 Giây */}
-          <div className="mt-4 rounded-xl border border-slate-800/90 bg-slate-950/50 p-3 text-left">
+          <div className="mt-3.5 rounded-xl border border-slate-800/90 bg-slate-950/50 p-3 text-left">
             <div className="text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-2">
               💡 3 Bước nhận ưu đãi trong App:
             </div>
@@ -134,7 +208,7 @@ export const ResultCard: React.FC<ResultCardProps> = ({ data }) => {
             </div>
           </div>
 
-          {/* Main CTA: Mở App Shopee To Bản */}
+          {/* Main CTA: Mở App Shopee To Bản với hiệu ứng Glow thở */}
           <div className="mt-5 flex flex-col gap-2.5 sm:mt-6 sm:gap-3">
             <a
               ref={ctaRef}
@@ -142,7 +216,7 @@ export const ResultCard: React.FC<ResultCardProps> = ({ data }) => {
               target={isMobile ? '_self' : '_blank'}
               rel="noopener noreferrer"
               onClick={handleOpenShopeeApp}
-              className="group relative flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#EE4D2D] via-orange-500 to-amber-500 p-3.5 text-center text-base font-black text-white shadow-xl shadow-[#EE4D2D]/35 transition-all hover:scale-[1.01] hover:brightness-110 active:scale-95 sm:text-lg"
+              className="group relative flex min-h-[54px] w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#EE4D2D] via-orange-500 to-amber-500 p-3.5 text-center text-base font-black text-white shadow-2xl shadow-[#EE4D2D]/40 ring-2 ring-orange-500/40 transition-all hover:scale-[1.01] hover:brightness-110 active:scale-95 sm:text-lg animate-pulse"
             >
               <Tag className="h-5 w-5 transition-transform group-hover:rotate-12" />
               <span>MỞ APP SHOPEE ÁP MÃ NGAY</span>
