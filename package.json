@@ -15,6 +15,7 @@
     "test:non-api": "tsx scripts/verify-non-api.ts",
     "test:real": "tsx scripts/test-real-pipeline.ts",
     "test:e2e": "tsx scripts/test-e2e-live.ts",
+    "test:edge": "tsx scripts/test-user-edge-cases.ts",
     "test:all": "tsx scripts/verify-shopee-client.ts && tsx scripts/verify-phase2.ts && tsx scripts/verify-phase3.ts && tsx scripts/verify-phase4.ts && tsx scripts/verify-phase5.ts && tsx scripts/verify-non-api.ts"
   },
   "dependencies": {
