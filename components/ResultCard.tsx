@@ -62,20 +62,49 @@ export const ResultCard: React.FC<ResultCardProps> = ({ data }) => {
   };
 
   // Hiển thị Sticky CTA Bar khi nút mở App chính bị cuộn khỏi tầm nhìn
+  // VÀ tự động ẩn thanh Sticky CTA khi người dùng cuộn đến phần Footer (tránh che khuất nội dung chân trang)
   useEffect(() => {
     if (!ctaRef.current) return;
 
-    const observer = new IntersectionObserver(
+    let isCtaAbove = false;
+    let isFooterInView = false;
+
+    const updateStickyState = () => {
+      // Chỉ hiện thanh ghim khi nút CTA chính đã bị cuộn vượt quá lên trên VÀ footer chưa lọt vào màn hình
+      setShowStickyBar(isCtaAbove && !isFooterInView);
+    };
+
+    const ctaObserver = new IntersectionObserver(
       ([entry]) => {
-        // Chỉ hiện thanh ghim đáy khi nút CTA đã bị cuộn vượt quá lên trên
-        const isAboveViewport = entry.boundingClientRect.bottom < 0;
-        setShowStickyBar(isAboveViewport);
+        isCtaAbove = entry.boundingClientRect.bottom < 0;
+        updateStickyState();
       },
       { threshold: 0 }
     );
 
-    observer.observe(ctaRef.current);
-    return () => observer.disconnect();
+    ctaObserver.observe(ctaRef.current);
+
+    // Observer theo dõi Footer
+    const footerEl = document.getElementById('app-footer');
+    let footerObserver: IntersectionObserver | null = null;
+
+    if (footerEl) {
+      footerObserver = new IntersectionObserver(
+        ([entry]) => {
+          isFooterInView = entry.isIntersecting;
+          updateStickyState();
+        },
+        { threshold: 0.05 }
+      );
+      footerObserver.observe(footerEl);
+    }
+
+    return () => {
+      ctaObserver.disconnect();
+      if (footerObserver) {
+        footerObserver.disconnect();
+      }
+    };
   }, []);
 
   const handleCopyLink = async () => {

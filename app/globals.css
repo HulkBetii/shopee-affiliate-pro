@@ -37,6 +37,10 @@ body {
   padding-bottom: max(1rem, env(safe-area-inset-bottom, 16px));
 }
 
+.safe-sticky-bottom {
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 16px));
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }

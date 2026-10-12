@@ -58,14 +58,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi" className="dark">
-      <body className="min-h-screen bg-[#090d16] text-slate-100 antialiased selection:bg-[#EE4D2D] selection:text-white">
-        <div className="relative flex min-h-screen flex-col overflow-x-hidden">
+      <body className="min-h-[100dvh] bg-[#090d16] text-slate-100 antialiased selection:bg-[#EE4D2D] selection:text-white">
+        <div className="relative flex min-h-[100dvh] flex-col overflow-x-hidden">
           {/* Subtle Ambient Glow */}
           <div className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-96 w-96 -translate-x-1/2 rounded-full bg-gradient-to-tr from-[#EE4D2D]/20 to-purple-600/20 blur-3xl" />
 
           <main className="flex-1">{children}</main>
 
-          <footer className="border-t border-slate-800/80 py-6 safe-bottom text-center text-xs text-slate-500 px-4">
+          <footer id="app-footer" className="border-t border-slate-800/80 pt-6 pb-28 sm:pb-10 safe-sticky-bottom text-center text-xs text-slate-500 px-4">
             <p className="font-semibold text-slate-400">ShopeeLink Pro &copy; {new Date().getFullYear()} &bull; Hệ thống tối ưu chuyển đổi Affiliate & Săn Voucher</p>
             <p className="mt-1.5 text-[11px] text-slate-400 max-w-xl mx-auto leading-relaxed">
               * Ưu đãi đối tác 25% (tối đa 500k) được kích hoạt tự động theo ngân sách khuyến mãi và điều kiện từng ngành hàng của Shopee. Mức giảm thực tế căn cứ theo giỏ hàng tại bước thanh toán trong App Shopee.

@@ -73,7 +73,7 @@ export const TutorialGuide: React.FC = () => {
       </div>
 
       {/* Trust Badges: Hàng 3 Cột Ngang Tinh Tế */}
-      <div className="mt-3.5 grid grid-cols-3 gap-2">
+      <div className="mt-3.5 mb-3 sm:mb-4 grid grid-cols-3 gap-2">
         <div className="rounded-xl border border-slate-800/80 bg-slate-900/50 p-2.5 text-center">
           <Shield className="mx-auto h-4 w-4 text-emerald-400" />
           <div className="mt-1 text-[11px] font-bold text-slate-200">100% Shopee App</div>

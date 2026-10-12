@@ -55,10 +55,10 @@ export const SocialProofToast: React.FC = () => {
 
   return (
     <div
-      className={`fixed bottom-4 left-3 z-30 max-w-sm transition-all duration-500 ease-out sm:bottom-6 sm:left-6 ${
+      className={`fixed top-14 left-3 right-3 z-30 max-w-sm sm:top-auto sm:bottom-6 sm:left-6 sm:right-auto transition-all duration-500 ease-out ${
         visible
           ? 'translate-y-0 opacity-100 scale-100'
-          : 'translate-y-6 opacity-0 scale-95 pointer-events-none'
+          : '-translate-y-4 sm:translate-y-6 opacity-0 scale-95 pointer-events-none'
       }`}
     >
       <div className="relative flex items-center gap-3 overflow-hidden rounded-2xl border border-orange-500/30 bg-slate-900/95 p-3 pr-8 shadow-2xl backdrop-blur-xl">

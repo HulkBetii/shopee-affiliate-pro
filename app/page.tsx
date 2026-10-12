@@ -65,7 +65,7 @@ export default function HomePage() {
     setHistoryRefreshTrigger((prev) => prev + 1);
 
     setTimeout(() => {
-      resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
   };
 
@@ -77,7 +77,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-[100dvh] flex-col">
       {/* 1-Tap Clipboard Auto-Detect Toast */}
       <ClipboardDetector
         onSelectUrl={(url) => setInitialUrl(url)}
@@ -88,7 +88,7 @@ export default function HomePage() {
       <Navbar onScrollToGuide={handleScrollToGuide} />
 
       {/* Main Container */}
-      <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col items-center px-3 py-3 text-center sm:px-4 sm:py-8">
+      <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col items-center px-3 pt-3 pb-8 text-center sm:px-4 sm:pt-6 sm:pb-12">
         {/* Banner phát hiện TikTok / Facebook In-App WebView (Slim Ticker) */}
         <WebViewNotice />
 
