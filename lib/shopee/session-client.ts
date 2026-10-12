@@ -73,17 +73,24 @@ export class ShopeeSessionClient {
         },
       };
 
+      const requestHeaders: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Cookie': this.sessionCookie,
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Referer': 'https://affiliate.shopee.vn/offer/custom_link',
+        'Origin': 'https://affiliate.shopee.vn',
+        'X-Api-Source': 'pc',
+      };
+
+      const csrfMatch = this.sessionCookie.match(/csrftoken=([^;]+)/i);
+      if (csrfMatch && csrfMatch[1]) {
+        requestHeaders['x-csrftoken'] = csrfMatch[1].trim();
+      }
+
       const response = await fetch(endpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cookie': this.sessionCookie,
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Referer': 'https://affiliate.shopee.vn/offer/custom_link',
-          'Origin': 'https://affiliate.shopee.vn',
-          'X-Api-Source': 'pc',
-        },
+        headers: requestHeaders,
         body: JSON.stringify(payload),
         signal: controller.signal,
       });
