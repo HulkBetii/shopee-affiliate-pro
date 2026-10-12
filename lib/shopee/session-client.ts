@@ -42,9 +42,9 @@ export class ShopeeSessionClient {
 
     try {
       // Endpoint GraphQL nội bộ của Shopee Console Custom Link (v3)
-      const endpoint = 'https://affiliate.shopee.vn/api/v3/gql';
+      const endpoint = 'https://affiliate.shopee.vn/api/v3/gql?q=batchCustomLink';
       const query = `
-        mutation batchGetCustomLink($linkParams: [CustomLinkParam!], $sourceCaller: SourceCaller){
+        query batchGetCustomLink($linkParams: [CustomLinkParam!], $sourceCaller: SourceCaller){
           batchCustomLink(linkParams: $linkParams, sourceCaller: $sourceCaller){
             shortLink
             longLink
