@@ -40,7 +40,7 @@ async function runPhase3Verification() {
 
     if (
       !mockApiResponseData.goUrl.startsWith('/go/') ||
-      !mockApiResponseData.deepLink.startsWith('shopee://') ||
+      mockApiResponseData.deepLink !== mockApiResponseData.affiliateUrl ||
       mockApiResponseData.discountPercentage !== 25
     ) {
       throw new Error('ResultCard data schema invalid');

@@ -122,22 +122,14 @@ async function runE2E() {
     assert(!data.cleanUrl.includes('rival_click_123'), 'Đã lọc sạch tracking rác rival_click');
     assert(!data.cleanUrl.includes('competitor'), 'Đã lọc sạch utm đối thủ competitor');
 
-    // Kiểm tra mã Affiliate của bạn KHÔNG BỊ ĐÈ
-    const parsedTarget = new URL(data.targetWithVoucherUrl);
-    const utmSource = parsedTarget.searchParams.get('utm_source');
-    const afSubSiteid = parsedTarget.searchParams.get('af_sub_siteid');
-    const mmpPid = parsedTarget.searchParams.get('mmp_pid');
-
-    assert(utmSource === EXPECTED_AFFILIATE_ID, `utm_source chính xác là ${EXPECTED_AFFILIATE_ID} (không bị đè thành 'facebook')`);
-    assert(afSubSiteid === EXPECTED_AFFILIATE_ID, `af_sub_siteid chính xác là ${EXPECTED_AFFILIATE_ID}`);
-    assert(mmpPid === EXPECTED_AFFILIATE_ID, `mmp_pid chính xác là ${EXPECTED_AFFILIATE_ID}`);
-    assert(parsedTarget.searchParams.get('utm_campaign') === 'meta_collab', 'Có utm_campaign=meta_collab');
-    assert(parsedTarget.searchParams.get('af_force_deeplink') === 'true', 'Có af_force_deeplink=true');
+    // Chỉ short link chính thức s.shopee.vn mới được Shopee ghi nhận click/hoa hồng
+    assert(new URL(data.affiliateUrl).hostname === 's.shopee.vn', `Link affiliate là short link s.shopee.vn (nhận ${data.affiliateUrl})`);
+    assert(data.targetWithVoucherUrl === data.affiliateUrl, 'Link đích giữ nguyên short link, không nối thêm tham số');
+    assert(data.deepLink === data.affiliateUrl, 'Deep link chính là short link (Universal Link), không dùng shopee://');
 
     // Kiểm tra Android Intent
-    assert(androidIntent.startsWith('intent://'), 'Android Intent bắt đầu bằng intent://');
+    assert(androidIntent.startsWith('intent://s.shopee.vn/'), 'Android Intent bọc short link s.shopee.vn');
     assert(androidIntent.includes('package=com.shopee.vn'), 'Android Intent chỉ định package com.shopee.vn');
-    assert(androidIntent.includes(`utm_source=${EXPECTED_AFFILIATE_ID}`), 'Android Intent chứa mã affiliate đầy đủ');
   } catch (err: any) {
     console.error('Lỗi Test 2:', err.message);
   }
@@ -160,7 +152,7 @@ async function runE2E() {
     const bridgeHtml = await res.text();
     assert(bridgeHtml.includes('Đang chuyển hướng tới Shopee...'), 'Chứa tiêu đề Bridge Page');
     assert(bridgeHtml.includes('androidIntent'), 'Script chứa biến androidIntent');
-    assert(bridgeHtml.includes(`utm_source=${EXPECTED_AFFILIATE_ID}`), 'HTML chứa link đích đầy đủ tracking');
+    assert(!!targetUrl && bridgeHtml.includes(targetUrl), 'HTML chuyển tiếp tới đúng short link affiliate');
   } catch (err: any) {
     console.error('Lỗi Test 3:', err.message);
   }
@@ -177,8 +169,7 @@ async function runE2E() {
     const res = await fetch(`${BASE_URL}/go/${deterministicSlug}`);
     assert(res.status === 200, `Slug tự giải mã ${deterministicSlug} trả về HTTP 200 (KHÔNG BỊ 404!)`);
     const html = await res.text();
-    assert(html.includes('https://shopee.vn/product/10928312/22819283712'), 'Tự động giải mã và khôi phục link sản phẩm gốc');
-    assert(html.includes(`utm_source=${EXPECTED_AFFILIATE_ID}`), 'Tự động gắn lại mã affiliate chuẩn');
+    assert(html.includes('https://s.shopee.vn/'), 'Slug sản phẩm thế hệ cũ được cấp lại short link chính thức s.shopee.vn');
   } catch (err: any) {
     console.error('Lỗi Test 4:', err.message);
   }
@@ -188,7 +179,8 @@ async function runE2E() {
   // -------------------------------------------------------------
   console.log('\n--- TEST 5: Kiểm thử Đích đến Shopee Server ---');
   try {
-    const shopeeTestUrl = targetUrl || `https://shopee.vn/product/10928312/22819283712?utm_source=${EXPECTED_AFFILIATE_ID}&af_sub_siteid=${EXPECTED_AFFILIATE_ID}`;
+    if (!targetUrl) throw new Error('Không có short link từ Test 2 để kiểm tra redirect của Shopee');
+    const shopeeTestUrl = targetUrl;
     const shopeeRes = await fetch(shopeeTestUrl, {
       method: 'GET',
       headers: {
@@ -200,9 +192,11 @@ async function runE2E() {
     });
 
     console.log(`   * Shopee HTTP Status: ${shopeeRes.status}`);
-    const setCookie = shopeeRes.headers.get('set-cookie') || '';
-    const hasShopeeCookies = setCookie.includes('SPC_') || shopeeRes.status === 200 || shopeeRes.status === 302;
-    assert(hasShopeeCookies, `Shopee Server phản hồi hợp lệ (HTTP ${shopeeRes.status}) và thiết lập phiên truy cập`);
+    // Server short link của Shopee phải redirect về landing gắn đúng affiliate ID + click id do Shopee cấp
+    const landing = new URL(shopeeRes.headers.get('location') || '', shopeeTestUrl);
+    assert(landing.searchParams.get('utm_source') === EXPECTED_AFFILIATE_ID, `Shopee gắn utm_source=${EXPECTED_AFFILIATE_ID}`);
+    assert(landing.searchParams.get('utm_medium') === 'affiliates', 'Shopee gắn utm_medium=affiliates');
+    assert(!!landing.searchParams.get('uls_trackid'), 'Shopee cấp click id uls_trackid cho lượt bấm');
   } catch (err: any) {
     console.error('Lỗi Test 5:', err.message);
   }

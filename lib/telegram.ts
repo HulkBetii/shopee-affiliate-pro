@@ -74,11 +74,31 @@ export class TelegramNotifier {
   }
 
   /**
-   * Gửi tin nhắn đến Telegram Bot (Hỗ trợ Dry-run nếu chưa cấu hình Token)
+   * Gửi báo cáo đối soát hàng ngày (Hỗ trợ Dry-run nếu chưa cấu hình Token)
    */
   public async sendReport(summary: DailyReportSummary): Promise<TelegramSendResult> {
     const message = this.formatReportMessage(summary);
+    return this.deliver(message, 'Đã gửi thông báo đối soát thành công qua Telegram Bot.');
+  }
 
+  /**
+   * Gửi cảnh báo vận hành (ví dụ: session cookie hết hạn, không tạo được link affiliate)
+   * @param title Tiêu đề cảnh báo (plain text, sẽ được escape)
+   * @param detail Chi tiết lỗi (plain text, sẽ được escape)
+   */
+  public async sendAlert(title: string, detail: string): Promise<TelegramSendResult> {
+    const timestamp = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+    const message =
+      `<b>🚨 [SHOPEELINK PRO] ${escapeTelegramHtml(title)}</b>\n` +
+      `<code>${escapeTelegramHtml(detail.slice(0, 1500))}</code>\n` +
+      `<i>${escapeTelegramHtml(timestamp)}</i>`;
+    return this.deliver(message, 'Đã gửi cảnh báo qua Telegram Bot.');
+  }
+
+  /**
+   * Gửi tin nhắn HTML đến Telegram Bot (Hỗ trợ Dry-run nếu chưa cấu hình Token)
+   */
+  private async deliver(message: string, successMessage: string): Promise<TelegramSendResult> {
     if (!this.isConfigured) {
       console.log('\n[Telegram Bot Dry-run Mode - Log bản tin mô phỏng]:');
       console.log('----------------------------------------------------');
@@ -113,7 +133,7 @@ export class TelegramNotifier {
 
       return {
         success: true,
-        message: 'Đã gửi thông báo đối soát thành công qua Telegram Bot.',
+        message: successMessage,
         isDryRun: false,
         telegramMessageId: resJson.result?.message_id,
       };

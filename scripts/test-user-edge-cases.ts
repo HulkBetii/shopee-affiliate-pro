@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { extractUrlFromText, isShopeeUrl, parseShopeeInput, sanitizeShopeeUrl, extractShopeeIds } from '../lib/shopee/parser';
-import { generateStatelessProductSlug, decodeStatelessProductSlug, injectMetaVoucherParams } from '../lib/shopee/voucher-shim';
+import { generateStatelessProductSlug, decodeStatelessProductSlug, buildShopeeDeepLinks } from '../lib/shopee/voucher-shim';
 import { getCurrentShopeeSlot, getDynamicSocialProofCount } from '../lib/marketing/time-slots';
 import { getRandomSocialProofEvent } from '../lib/marketing/social-proof';
 
@@ -129,11 +129,12 @@ async function runComprehensiveEdgeCaseTests() {
   const badSlugDecode = decodeStatelessProductSlug('p!@#$_invalid');
   assert(badSlugDecode === null, 'Stateless Slug chứa ký tự lỗi được xử lý an toàn (trả về null, không crash)');
 
-  // Test 17: Gắn tham số voucher Meta Partner mà không đè utm_source
-  const injected = injectMetaVoucherParams(`https://shopee.vn/product/1/2?mmp_pid=${EXPECTED_AFFILIATE_ID}&utm_source=${EXPECTED_AFFILIATE_ID}`);
-  assert(injected.includes(`utm_source=${EXPECTED_AFFILIATE_ID}`), 'Bảo toàn utm_source của affiliateId');
-  assert(injected.includes('utm_campaign=meta_collab'), 'Bổ sung tham số utm_campaign=meta_collab kích hoạt voucher');
-  assert(injected.includes('af_force_deeplink=true'), 'Bổ sung tham số af_force_deeplink=true mở app');
+  // Test 17: Deep link & Android Intent giữ nguyên short link affiliate (không custom scheme, không nối tham số)
+  const sampleShortLink = 'https://s.shopee.vn/AbC123xyz';
+  const deepLinks = buildShopeeDeepLinks(sampleShortLink);
+  assert(deepLinks.deepLink === sampleShortLink, 'Deep link chính là short link s.shopee.vn (Universal Link)');
+  assert(deepLinks.androidIntent.startsWith('intent://s.shopee.vn/AbC123xyz#Intent;scheme=https;package=com.shopee.vn;'), 'Android Intent bọc nguyên short link');
+  assert(!JSON.stringify(deepLinks).includes('shopee://') && !JSON.stringify(deepLinks).includes('meta_collab'), 'Không còn custom scheme / tham số Meta làm mất attribution');
 
   // ====================================================================
   // PHẦN 3: MARKETING ENGINE & LOGIC THỜI GIAN THỰC
@@ -206,7 +207,8 @@ async function runComprehensiveEdgeCaseTests() {
   const validJson = await validPostRes.json();
   assert(validJson.success === true && !!validJson.data?.slug, 'Nhận payload dữ liệu đầy đủ kèm mã slug');
   assert(validJson.data.discountPercentage === 25, 'Kích hoạt voucher đối tác 25%');
-  assert(validJson.data.androidIntent.includes(EXPECTED_AFFILIATE_ID), 'Android Intent chứa mã affiliate đối tác');
+  assert(new URL(validJson.data.affiliateUrl).hostname === 's.shopee.vn', 'Link affiliate là short link chính thức s.shopee.vn');
+  assert(validJson.data.androidIntent.includes(validJson.data.affiliateUrl.replace(/^https:\/\//, '')), 'Android Intent bọc nguyên short link affiliate');
 
   const generatedSlug = validJson.data.slug;
 
@@ -228,7 +230,7 @@ async function runComprehensiveEdgeCaseTests() {
   assert(bridgeRes.status === 200, `Truy cập Bridge Page /go/${generatedSlug} thành công (HTTP 200)`);
   const bridgeHtml = await bridgeRes.text();
   assert(bridgeHtml.includes('Đang chuyển hướng tới Shopee'), 'HTML chứa giao diện Bridge Page');
-  assert(bridgeHtml.includes(EXPECTED_AFFILIATE_ID), 'Bridge Page HTML chứa mã affiliate chuẩn xác');
+  assert(bridgeHtml.includes(validJson.data.affiliateUrl), 'Bridge Page HTML chuyển tiếp tới đúng short link affiliate');
 
   // Test 28: Truy cập /go/slug_khong_ton_tai
   const invalidSlugRes = await fetch(`${BASE_URL}/go/non_existent_slug_test_12345`);
@@ -242,7 +244,7 @@ async function runComprehensiveEdgeCaseTests() {
   const statelessRes = await fetch(`${BASE_URL}/go/${statelessTestSlug}`);
   assert(statelessRes.status === 200, `Stateless Slug /go/${statelessTestSlug} tự phục hồi thành công (HTTP 200, KHÔNG BỊ 404!)`);
   const statelessHtml = await statelessRes.text();
-  assert(statelessHtml.includes('10928312') && statelessHtml.includes('22819283712'), 'Tự động giải mã và khôi phục đúng link sản phẩm gốc');
+  assert(statelessHtml.includes('https://s.shopee.vn/'), 'Slug sản phẩm thế hệ cũ được cấp lại short link chính thức s.shopee.vn');
 
   // ====================================================================
   // PHẦN 6: KIỂM THỬ PWA & WEB SHARE TARGET

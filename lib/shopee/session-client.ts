@@ -12,6 +12,7 @@ export interface SessionShortLinkResponse {
 export class ShopeeSessionClient {
   private sessionCookie: string;
   private timeoutMs: number;
+  private lastError: string | null = null;
 
   constructor(sessionCookie?: string, timeoutMs: number = 8000) {
     this.sessionCookie =
@@ -20,6 +21,13 @@ export class ShopeeSessionClient {
       process.env.SHOPEE_COOKIE ||
       '';
     this.timeoutMs = timeoutMs;
+  }
+
+  /**
+   * Reason of the most recent failed generateShortLink call (null after a success)
+   */
+  public getLastError(): string | null {
+    return this.lastError;
   }
 
   public isAvailable(): boolean {
@@ -34,6 +42,7 @@ export class ShopeeSessionClient {
     subIds?: string[]
   ): Promise<string | null> {
     if (!this.isAvailable()) {
+      this.lastError = 'SHOPEE_SESSION_COOKIE is missing or too short';
       return null;
     }
 
@@ -97,6 +106,7 @@ export class ShopeeSessionClient {
 
       if (!response.ok) {
         console.warn(`[ShopeeSessionClient] HTTP ${response.status} ${response.statusText} - Có thể session cookie cần refresh hoặc bị Shopee WAF chặn.`);
+        this.lastError = `HTTP ${response.status} ${response.statusText} (cookie expired or blocked by WAF?)`;
         return null;
       }
 
@@ -108,6 +118,7 @@ export class ShopeeSessionClient {
         json?.data?.shortLink;
 
       if (shortLink) {
+        this.lastError = null;
         return shortLink;
       }
 
@@ -115,9 +126,16 @@ export class ShopeeSessionClient {
         console.warn(`[ShopeeSessionClient] API nội bộ trả về mã lỗi: ${json.error}`);
       }
 
+      const failCode = json?.data?.batchCustomLink?.[0]?.failCode;
+      this.lastError = failCode
+        ? `batchCustomLink failCode=${failCode}`
+        : json?.error
+          ? `API error=${json.error}`
+          : 'Response contained no shortLink';
       return null;
     } catch (err: unknown) {
       console.warn(`[ShopeeSessionClient] Ngoại lệ khi tạo link từ Session Cookie: ${(err as Error)?.message || err}. Fallback sang tầng tiếp theo.`);
+      this.lastError = `Exception: ${(err as Error)?.message || String(err)}`;
       return null;
     } finally {
       clearTimeout(timeout);

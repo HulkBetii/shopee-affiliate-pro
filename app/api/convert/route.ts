@@ -3,6 +3,7 @@ import { parseShopeeInput } from '@/lib/shopee/parser';
 import { defaultShopeeClient, ShopeeApiError } from '@/lib/shopee/client';
 import { createVoucherShim, VoucherShimData } from '@/lib/shopee/voucher-shim';
 import { cacheService } from '@/lib/cache';
+import { alertAffiliateLinkFailure } from '@/lib/alerts';
 
 export interface ConvertApiResponse {
   success: boolean;
@@ -42,6 +43,7 @@ function checkRateLimit(ip: string, limit = 60, windowMs = 60000): boolean {
 }
 
 export async function POST(req: NextRequest) {
+  let rawInputForAlert: string | undefined;
   try {
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
     if (!checkRateLimit(ip)) {
@@ -67,6 +69,7 @@ export async function POST(req: NextRequest) {
     }
 
     const rawInput = body.url.trim();
+    rawInputForAlert = rawInput.slice(0, 200);
     const customSubIds: string[] = Array.isArray(body.subIds)
       ? body.subIds
       : ['tiktok_bio', 'shopeelink_web'];
@@ -85,7 +88,8 @@ export async function POST(req: NextRequest) {
 
     // 2. Kiểm tra Cache theo cleanUrl và subIds
     const subIdsKey = customSubIds.slice().sort().join(',');
-    const cacheKey = `shopee:converted:${parsed.cleanUrl}:${subIdsKey}`;
+    // v2: entries from the old self-built tracking URL era are not attributable, never reuse them
+    const cacheKey = `shopee:converted:v2:${parsed.cleanUrl}:${subIdsKey}`;
     const cachedData = await cacheService.get<VoucherShimData>(cacheKey);
 
     if (cachedData) {
@@ -110,13 +114,13 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 3. Gọi Shopee Open API để tạo ShortLink Affiliate
+    // 3. Tạo ShortLink Affiliate chính thức (s.shopee.vn)
     const affiliateUrl = await defaultShopeeClient.generateShortLink(
       parsed.cleanUrl,
       customSubIds
     );
 
-    // 4. Bọc qua Meta Partner Shim & tạo Deep Link
+    // 4. Đóng gói slug /go & deep link mở App
     const shim = await createVoucherShim({
       originalUrl: rawInput,
       cleanUrl: parsed.cleanUrl,
@@ -151,7 +155,20 @@ export async function POST(req: NextRequest) {
   } catch (err: unknown) {
     console.error('API /api/convert error:', err);
 
+    if (err instanceof ShopeeApiError && err.code === 'AFFILIATE_LINK_UNAVAILABLE') {
+      const reason = (err.details as { reason?: string } | undefined)?.reason || err.message;
+      await alertAffiliateLinkFailure(reason, rawInputForAlert);
+      return NextResponse.json<ConvertApiResponse>(
+        {
+          success: false,
+          message: 'Hệ thống đang bảo trì liên kết ưu đãi, vui lòng thử lại sau ít phút.',
+        },
+        { status: 503 }
+      );
+    }
+
     if (err instanceof ShopeeApiError) {
+      await alertAffiliateLinkFailure(`Shopee API error: ${err.message}`);
       return NextResponse.json<ConvertApiResponse>(
         {
           success: false,

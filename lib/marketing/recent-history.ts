@@ -12,16 +12,35 @@ export interface RecentConversionItem {
   itemId?: string;
 }
 
-const STORAGE_KEY = 'shopeelink_recent_conversions';
+const STORAGE_KEY = 'shopeelink_recent_conversions_v2';
+// v1 lưu link tự ghép (không qua s.shopee.vn) nên Shopee không ghi nhận hoa hồng -> bỏ hẳn
+const LEGACY_STORAGE_KEY = 'shopeelink_recent_conversions';
 const MAX_RECENT_ITEMS = 8;
+
+/**
+ * Chỉ giữ các mục trỏ tới short link affiliate chính thức (s.shopee.vn)
+ */
+function isOfficialShortLink(urlStr: string): boolean {
+  try {
+    return new URL(urlStr).hostname.toLowerCase() === 's.shopee.vn';
+  } catch {
+    return false;
+  }
+}
 
 export function getRecentHistory(): RecentConversionItem[] {
   if (typeof window === 'undefined') return [];
   try {
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
+
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (item: RecentConversionItem) =>
+        typeof item?.targetWithVoucherUrl === 'string' && isOfficialShortLink(item.targetWithVoucherUrl)
+    );
   } catch (err) {
     console.warn('Lỗi đọc lịch sử săn sale:', err);
     return [];

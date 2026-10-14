@@ -12,6 +12,8 @@ export interface TrackingUrlOptions {
 
 /**
  * Xây dựng URL Shopee có gắn mã tracking affiliate và tham số kích hoạt voucher
+ * @deprecated Shopee does not attribute commission to self-built tracking URLs: clicks are only
+ * recorded when they go through the official s.shopee.vn short-link server. Not used in production.
  */
 export function buildAffiliateTrackingUrl(options: TrackingUrlOptions): string {
   const {

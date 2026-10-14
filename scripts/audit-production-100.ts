@@ -1,5 +1,4 @@
-import { buildAffiliateTrackingUrl } from '../lib/shopee/tracking-builder';
-import { generateStatelessProductSlug, decodeStatelessProductSlug } from '../lib/shopee/voucher-shim';
+import { buildShopeeDeepLinks, generateStatelessProductSlug, decodeStatelessProductSlug } from '../lib/shopee/voucher-shim';
 
 async function runProduction100Audit() {
   console.log('================================================================');
@@ -75,7 +74,8 @@ async function runProduction100Audit() {
     const data2 = await res2.json();
     assert('Case 2: Link sản phẩm chuẩn trả về HTTP 200', res2.status === 200);
     assert('Case 2: success: true', data2.success === true);
-    assert('Case 2: Gắn đúng partner an_17315740682', data2.data?.targetWithVoucherUrl?.includes('an_17315740682'));
+    assert('Case 2: Link affiliate là short link chính thức s.shopee.vn', data2.data?.affiliateUrl?.startsWith('https://s.shopee.vn/'));
+    assert('Case 2: Link đích giữ nguyên short link', data2.data?.targetWithVoucherUrl === data2.data?.affiliateUrl);
     assert('Case 2: Có slug hợp lệ', !!data2.data?.slug);
   } catch (err: any) {
     assert('Case 2: Chuyển đổi link sản phẩm chuẩn thành công', false, err.message);
@@ -91,9 +91,8 @@ async function runProduction100Audit() {
     });
     const data3 = await res3.json();
     assert('Case 3: Link Mall dài trả về HTTP 200', res3.status === 200);
-    assert('Case 3: Lọc sạch sp_atk đối thủ', !data3.data?.targetWithVoucherUrl?.includes('sp_atk=rival_123'));
-    assert('Case 3: Thay thế utm_source sang an_17315740682', data3.data?.targetWithVoucherUrl?.includes('utm_source=an_17315740682'));
-    assert('Case 3: Thay thế mmp_pid sang an_17315740682', data3.data?.targetWithVoucherUrl?.includes('mmp_pid=an_17315740682'));
+    assert('Case 3: Lọc sạch tracking đối thủ khỏi link gốc', !data3.data?.cleanUrl?.includes('rival_123') && !data3.data?.cleanUrl?.includes('bad_aff'));
+    assert('Case 3: Link affiliate là short link chính thức s.shopee.vn', data3.data?.affiliateUrl?.startsWith('https://s.shopee.vn/'));
   } catch (err: any) {
     assert('Case 3: Link Mall dài xử lý thành công', false, err.message);
   }
@@ -130,21 +129,15 @@ async function runProduction100Audit() {
   // --- TRỤ CỘT 3: ATTRIBUTION & DEEP LINK CẤU TRÚC ---
   console.log('\n--- TRỤ CỘT 3: TÍNH CHÍNH XÁC ATTRIBUTION & DEEPLINK ---');
   try {
-    const trackingUrl = buildAffiliateTrackingUrl({
-      cleanUrl: 'https://shopee.vn/product/12345/67890',
-      affiliateId: 'an_17315740682',
-      subIds: ['bio', 'audit'],
-      includeMetaVoucher: true,
-    });
-    assert('Chứa mmp_pid=an_17315740682', trackingUrl.includes('mmp_pid=an_17315740682'));
-    assert('Chứa utm_source=an_17315740682', trackingUrl.includes('utm_source=an_17315740682'));
-    assert('Chứa af_sub_siteid=an_17315740682', trackingUrl.includes('af_sub_siteid=an_17315740682'));
-    assert('Chứa utm_campaign=meta_collab', trackingUrl.includes('utm_campaign=meta_collab'));
-    assert('Chứa af_force_deeplink=true', trackingUrl.includes('af_force_deeplink=true'));
-    assert('Chứa sub_id_1=bio', trackingUrl.includes('sub_id_1=bio'));
-    assert('Chứa sub_id_2=audit', trackingUrl.includes('sub_id_2=audit'));
+    // Chỉ short link chính thức s.shopee.vn mới được Shopee ghi nhận click/hoa hồng
+    const shortLink = 'https://s.shopee.vn/AbC123xyz';
+    const links = buildShopeeDeepLinks(shortLink);
+    assert('Deep link chính là short link s.shopee.vn', links.deepLink === shortLink);
+    assert('Android Intent bọc nguyên short link', links.androidIntent.startsWith('intent://s.shopee.vn/AbC123xyz#Intent;scheme=https;package=com.shopee.vn;'));
+    assert('Không dùng custom scheme shopee://', !JSON.stringify(links).includes('shopee://'));
+    assert('Không nối tham số Meta giả (meta_collab / l.facebook.com)', !JSON.stringify(links).includes('meta_collab') && !JSON.stringify(links).includes('l.facebook.com'));
   } catch (err: any) {
-    assert('Attribution URL Builder thành công', false, err.message);
+    assert('Attribution Deep Link thành công', false, err.message);
   }
 
   // --- TRỤ CỘT 4: STATELESS BRIDGE ROUTE (/go/[slug]) ---
@@ -164,7 +157,7 @@ async function runProduction100Audit() {
     assert('Live Bridge endpoint /go/[slug] HTTP 200', resBridge.status === 200);
     const bridgeHtml = await resBridge.text();
     assert('Bridge Page chứa Android Intent Package', bridgeHtml.includes('package=com.shopee.vn'));
-    assert('Bridge Page chứa tracking an_17315740682', bridgeHtml.includes('an_17315740682'));
+    assert('Bridge Page chuyển tiếp tới short link chính thức s.shopee.vn', bridgeHtml.includes('https://s.shopee.vn/'));
   } catch (err: any) {
     assert('Kiểm thử Stateless Bridge Route thành công', false, err.message);
   }

@@ -13,10 +13,11 @@
     "test:phase4": "tsx scripts/verify-phase4.ts",
     "test:phase5": "tsx scripts/verify-phase5.ts",
     "test:non-api": "tsx scripts/verify-non-api.ts",
+    "test:afl": "tsx scripts/verify-affiliate-attribution.ts",
     "test:real": "tsx scripts/test-real-pipeline.ts",
     "test:e2e": "tsx scripts/test-e2e-live.ts",
     "test:edge": "tsx scripts/test-user-edge-cases.ts",
-    "test:all": "tsx scripts/verify-shopee-client.ts && tsx scripts/verify-phase2.ts && tsx scripts/verify-phase3.ts && tsx scripts/verify-phase4.ts && tsx scripts/verify-phase5.ts && tsx scripts/verify-non-api.ts",
+    "test:all": "tsx scripts/verify-shopee-client.ts && tsx scripts/verify-phase2.ts && tsx scripts/verify-phase3.ts && tsx scripts/verify-phase4.ts && tsx scripts/verify-phase5.ts && tsx scripts/verify-non-api.ts && tsx scripts/verify-affiliate-attribution.ts",
     "audit:100": "tsx scripts/audit-production-100.ts"
   },
   "dependencies": {

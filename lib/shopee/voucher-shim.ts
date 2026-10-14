@@ -1,6 +1,8 @@
 import crypto from 'crypto';
 import { cacheService } from '../cache';
-import { buildAffiliateTrackingUrl } from './tracking-builder';
+import { isShopeeShortUrl } from './parser';
+import { defaultShopeeClient } from './client';
+import { alertAffiliateLinkFailure } from '../alerts';
 
 export interface VoucherShimData {
   slug: string;
@@ -75,9 +77,35 @@ export function decodeStatelessProductSlug(slug: string): { shopId: string; item
   return null;
 }
 
+const SHIM_TTL_SECONDS = 2592000; // 30 ngày
+const SHORT_LINK_CODE_PATTERN = /^[A-Za-z0-9]{4,20}$/;
+
+/**
+ * Lấy mã short link từ link affiliate chính thức dạng https://s.shopee.vn/<code>
+ */
+export function extractShortLinkCode(urlStr: string): string | null {
+  try {
+    const url = new URL(urlStr);
+    if (url.protocol !== 'https:' || url.hostname.toLowerCase() !== 's.shopee.vn') return null;
+    const code = url.pathname.replace(/^\/+|\/+$/g, '');
+    return SHORT_LINK_CODE_PATTERN.test(code) ? code : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Slug mang mã short link (s<code>) để /go tự phục hồi không cần cache; ngược lại sinh slug ngẫu nhiên
+ */
+export function buildShimSlug(affiliateUrl: string): string {
+  const code = extractShortLinkCode(affiliateUrl);
+  return code ? `s${code}` : generateRandomSlug(8);
+}
+
 /**
  * Gắn các tham số kích hoạt Voucher Meta Partner vào link
- * LƯU Ý BẢO MẬT ATTRIBUTION: Tuyệt đối không ghi đè utm_source của affiliateId thành 'facebook'
+ * @deprecated Shopee drops query params appended to s.shopee.vn short links, so these params
+ * neither activate vouchers nor affect attribution. No longer used in the conversion flow.
  */
 export function injectMetaVoucherParams(urlStr: string): string {
   try {
@@ -92,13 +120,15 @@ export function injectMetaVoucherParams(urlStr: string): string {
 }
 
 /**
- * Xây dựng Universal Deep Link & Android Intent đánh thức Shopee App trực tiếp
- * @param targetUrl Link sản phẩm đã gắn mã voucher và affiliate
- * @param options Tùy chọn itemId và shopId để tạo deep link sản phẩm chính xác
+ * Xây dựng link mở Shopee App mà vẫn giữ nguyên short link affiliate.
+ * s.shopee.vn là Universal Link (iOS) và verified App Link (Android) của com.shopee.vn,
+ * nên mở thẳng short link vừa đánh thức App vừa để Shopee ghi nhận click affiliate.
+ * Custom scheme kiểu shopee://product/{shopId}/{itemId} bỏ qua server short link => mất hoa hồng.
+ * @param targetUrl Short link affiliate chính thức (https://s.shopee.vn/...)
  */
 export function buildShopeeDeepLinks(
   targetUrl: string,
-  options?: { itemId?: string; shopId?: string }
+  _options?: { itemId?: string; shopId?: string }
 ): {
   deepLink: string;
   androidIntent: string;
@@ -106,35 +136,53 @@ export function buildShopeeDeepLinks(
   universalLink: string;
 } {
   const encoded = encodeURIComponent(targetUrl);
-  const { itemId, shopId } = options || {};
 
-  // Custom scheme: Ưu tiên link đích danh sản phẩm nếu có itemId & shopId
-  let deepLink: string;
-  if (itemId && shopId) {
-    deepLink = `shopee://product/${shopId}/${itemId}`;
-  } else {
-    deepLink = `shopee://web?url=${encoded}`;
-  }
-
-  // Android Intent URI: TRUYỀN TOÀN BỘ URL AFFILIATE ĐẦY ĐỦ VÀO INTENT
-  // Để khi Shopee App mở ra trên Android, App nhận trọn vẹn tham số tracking (af_sub_siteid, utm_source...)
+  // Android Intent URI: truyền nguyên short link để App nhận đủ tracking của Shopee
   const rawHostAndPath = targetUrl.replace(/^https?:\/\//, '');
   const androidIntent = `intent://${rawHostAndPath}#Intent;scheme=https;package=com.shopee.vn;S.browser_fallback_url=${encoded};end`;
 
-  // Facebook Link Shim mô phỏng truy cập từ Meta (Facebook/Instagram)
-  const metaRefererUrl = `https://l.facebook.com/l.php?u=${encoded}`;
-
   return {
-    deepLink,
+    deepLink: targetUrl,
     androidIntent,
-    metaRefererUrl,
+    metaRefererUrl: '',
     universalLink: targetUrl,
   };
 }
 
 /**
+ * Đóng gói dữ liệu chuyển tiếp từ short link affiliate chính thức
+ */
+function buildShimData(params: {
+  slug: string;
+  originalUrl: string;
+  cleanUrl: string;
+  affiliateUrl: string;
+  itemId?: string;
+  shopId?: string;
+}): VoucherShimData {
+  const { deepLink, androidIntent, metaRefererUrl, universalLink } = buildShopeeDeepLinks(params.affiliateUrl);
+
+  return {
+    slug: params.slug,
+    originalUrl: params.originalUrl,
+    cleanUrl: params.cleanUrl,
+    affiliateUrl: params.affiliateUrl,
+    targetWithVoucherUrl: params.affiliateUrl,
+    deepLink,
+    androidIntent,
+    metaRefererUrl,
+    universalLink,
+    discountPercentage: 25,
+    maxDiscountAmount: '500.000đ',
+    createdAt: Date.now(),
+    itemId: params.itemId,
+    shopId: params.shopId,
+  };
+}
+
+/**
  * Đóng gói và lưu trữ metadata chuyển tiếp vào cache (TTL 30 ngày)
- * Hỗ trợ Stateless Deterministic Slug để chống 404 trên serverless
+ * Slug s<code> tự phục hồi từ mã short link nên không phụ thuộc cache trên serverless
  */
 export async function createVoucherShim(params: {
   originalUrl: string;
@@ -143,85 +191,56 @@ export async function createVoucherShim(params: {
   itemId?: string;
   shopId?: string;
 }): Promise<VoucherShimData> {
-  const slug = generateStatelessProductSlug(params.shopId, params.itemId);
-  const targetWithVoucherUrl = injectMetaVoucherParams(params.affiliateUrl);
-  const { deepLink, androidIntent, metaRefererUrl } = buildShopeeDeepLinks(targetWithVoucherUrl, {
-    itemId: params.itemId,
-    shopId: params.shopId,
-  });
+  const shimData = buildShimData({ ...params, slug: buildShimSlug(params.affiliateUrl) });
 
-  const shimData: VoucherShimData = {
-    slug,
-    originalUrl: params.originalUrl,
-    cleanUrl: params.cleanUrl,
-    affiliateUrl: params.affiliateUrl,
-    targetWithVoucherUrl,
-    deepLink,
-    androidIntent,
-    metaRefererUrl,
-    universalLink: targetWithVoucherUrl,
-    discountPercentage: 25,
-    maxDiscountAmount: '500.000đ',
-    createdAt: Date.now(),
-    itemId: params.itemId,
-    shopId: params.shopId,
-  };
-
-  // Lưu vào cache với key shopee:shim:{slug} (TTL 30 ngày = 2592000s)
-  await cacheService.set(`shopee:shim:${slug}`, shimData, 2592000);
+  await cacheService.set(`shopee:shim:${shimData.slug}`, shimData, SHIM_TTL_SECONDS);
 
   return shimData;
 }
 
 /**
  * Tra cứu thông tin chuyển tiếp từ slug
- * Cơ chế 2 tầng: Cache Hit -> Stateless Self-Healing Recovery khi Cache Miss
+ * Cơ chế: Cache Hit (chỉ nhận short link chính thức) -> Tự phục hồi theo loại slug khi Cache Miss
  */
 export async function getVoucherShimBySlug(slug: string): Promise<VoucherShimData | null> {
-  // Tầng 1: Tra cứu trong Cache (Redis / Memory)
-  const cached = await cacheService.get<VoucherShimData>(`shopee:shim:${slug}`);
-  if (cached) {
+  const cacheKey = `shopee:shim:${slug}`;
+
+  // Tầng 1: Cache (Redis / Memory). Bỏ qua shim cũ trỏ tới link tự ghép (không được Shopee ghi nhận)
+  const cached = await cacheService.get<VoucherShimData>(cacheKey);
+  if (cached && isShopeeShortUrl(cached.affiliateUrl)) {
     return cached;
   }
 
-  // Tầng 2: Stateless Self-Healing Recovery (Cứu cánh khi Serverless instance mới hoặc chưa cài Redis)
+  // Tầng 2: Slug mang mã short link -> dựng lại trực tiếp (host cố định s.shopee.vn)
+  if (slug.startsWith('s')) {
+    const code = slug.slice(1);
+    if (!SHORT_LINK_CODE_PATTERN.test(code)) return null;
+
+    const affiliateUrl = `https://s.shopee.vn/${code}`;
+    const recovered = buildShimData({ slug, originalUrl: affiliateUrl, cleanUrl: affiliateUrl, affiliateUrl });
+    await cacheService.set(cacheKey, recovered, SHIM_TTL_SECONDS);
+    return recovered;
+  }
+
+  // Tầng 3: Slug sản phẩm thế hệ cũ (p<shop36>_<item36>) đã rải trên bio -> xin short link chính thức mới
   const decoded = decodeStatelessProductSlug(slug);
   if (decoded) {
     const { shopId, itemId } = decoded;
     const cleanUrl = `https://shopee.vn/product/${shopId}/${itemId}`;
-    const affiliateId = process.env.SHOPEE_AFFILIATE_ID || 'an_17315740682';
-    const affiliateUrl = buildAffiliateTrackingUrl({
-      cleanUrl,
-      affiliateId,
-      subIds: ['tiktok_bio', 'shopeelink_web'],
-      includeMetaVoucher: true,
-    });
-    const targetWithVoucherUrl = injectMetaVoucherParams(affiliateUrl);
-    const { deepLink, androidIntent, metaRefererUrl } = buildShopeeDeepLinks(targetWithVoucherUrl, {
-      itemId,
-      shopId,
-    });
 
-    const recoveredShim: VoucherShimData = {
-      slug,
-      originalUrl: cleanUrl,
-      cleanUrl,
-      affiliateUrl,
-      targetWithVoucherUrl,
-      deepLink,
-      androidIntent,
-      metaRefererUrl,
-      universalLink: targetWithVoucherUrl,
-      discountPercentage: 25,
-      maxDiscountAmount: '500.000đ',
-      createdAt: Date.now(),
-      itemId,
-      shopId,
-    };
-
-    // Lưu ngược lại cache để các request tiếp theo hit ngay
-    await cacheService.set(`shopee:shim:${slug}`, recoveredShim, 2592000);
-    return recoveredShim;
+    try {
+      const affiliateUrl = await defaultShopeeClient.generateShortLink(cleanUrl, ['tiktok_bio', 'shopeelink_web']);
+      const recovered = buildShimData({ slug, originalUrl: cleanUrl, cleanUrl, affiliateUrl, itemId, shopId });
+      await cacheService.set(cacheKey, recovered, SHIM_TTL_SECONDS);
+      return recovered;
+    } catch (err: unknown) {
+      const details = (err as { details?: { reason?: string } })?.details;
+      await alertAffiliateLinkFailure(
+        details?.reason || (err as Error)?.message || 'Unknown error',
+        `/go/${slug}`
+      );
+      return null;
+    }
   }
 
   return null;
