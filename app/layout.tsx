@@ -1,14 +1,38 @@
 import type { Metadata, Viewport } from 'next';
+import { Playfair_Display, Lora, Be_Vietnam_Pro } from 'next/font/google';
 import './globals.css';
 import { Analytics } from '@/components/Analytics';
 import { PwaRegister } from '@/components/PwaRegister';
+
+const playfair = Playfair_Display({
+  subsets: ['vietnamese', 'latin'],
+  weight: ['400', '600', '700', '800'],
+  style: ['normal', 'italic'],
+  variable: '--font-playfair',
+  display: 'swap',
+});
+
+const lora = Lora({
+  subsets: ['vietnamese', 'latin'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  variable: '--font-lora',
+  display: 'swap',
+});
+
+const beVietnam = Be_Vietnam_Pro({
+  subsets: ['vietnamese', 'latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-be-vietnam',
+  display: 'swap',
+});
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://shopee.mrhulkstore.store';
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
-  title: 'ShopeeLink Pro - Săn Voucher 25% Shopee | MrHulk Store',
-  description: 'Dán link Shopee bất kỳ để nhận ngay mã giảm giá 20-25% tối đa 500k. Đánh thức trực tiếp App Shopee, mua sắm an toàn không lo kẹt trình duyệt.',
+  title: 'Nàng thơ làm mẹ ♡ | Tủ Đồ Bé Sữa & Góc Nhỏ Cùng Mẹ Ngân',
+  description: 'Góc nhỏ thân tình chia sẻ những món đồ chân ái cho mẹ và bé. Tự tạo link mua hàng Shopee nhanh chóng, tiện lợi và tiết kiệm cùng mẹ Sữa.',
   manifest: '/manifest.webmanifest',
   icons: {
     icon: '/icon.svg',
@@ -16,31 +40,32 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
-    title: 'ShopeeLink Pro',
+    statusBarStyle: 'default',
+    title: 'Nàng thơ làm mẹ',
   },
   keywords: [
-    'shopee affiliate',
+    'nàng thơ làm mẹ',
+    'ngân và sữa',
+    'nganvasua',
+    'đồ dùng mẹ và bé',
+    'kinh nghiệm chăm con',
+    'tủ đồ bé sữa',
     'mã giảm giá shopee',
-    'voucher shopee 25%',
-    'săn sale shopee',
-    'shopee link rút gọn',
-    'mrhulk store',
-    'voucher meta partner',
+    'shopee affiliate',
   ],
-  authors: [{ name: 'MrHulk Store' }],
+  authors: [{ name: 'Ngân & Bé Sữa', url: 'https://www.tiktok.com/@nganvasua' }],
   openGraph: {
-    title: 'ShopeeLink Pro - Săn Mã Giảm Giá 25% Shopee | MrHulk Store',
-    description: 'Chỉ mất 3 giây để giảm ngay 25% cho đơn hàng Shopee của bạn. Nhận mã độc quyền và mở thẳng App Shopee ngay.',
+    title: 'Nàng thơ làm mẹ ♡ | Tủ Đồ Bé Sữa & Góc Nhỏ Cùng Mẹ Ngân',
+    description: 'Chia sẻ những món đồ hữu ích trong hành trình chăm sóc bé Sữa. Dán link để tạo link mua hàng Shopee nhanh chóng và tiện lợi.',
     url: baseUrl,
-    siteName: 'ShopeeLink Pro - MrHulk Store',
+    siteName: 'Nàng thơ làm mẹ ♡',
     locale: 'vi_VN',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ShopeeLink Pro - Săn Mã Giảm Giá 25% Shopee | MrHulk Store',
-    description: 'Dán link Shopee - Giảm ngay 25% mọi đơn hàng. Mở app Shopee trực tiếp.',
+    title: 'Nàng thơ làm mẹ ♡ | Tủ Đồ Bé Sữa & Góc Nhỏ Cùng Mẹ Ngân',
+    description: 'Góc nhỏ thân tình chia sẻ những món đồ chân ái cho mẹ và bé.',
   },
 };
 
@@ -48,7 +73,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#090d16',
+  themeColor: '#F8F0E5',
 };
 
 export default function RootLayout({
@@ -57,18 +82,33 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi" className="dark">
-      <body className="min-h-[100dvh] bg-[#090d16] text-slate-100 antialiased selection:bg-[#EE4D2D] selection:text-white">
+    <html
+      lang="vi"
+      className={`${playfair.variable} ${lora.variable} ${beVietnam.variable}`}
+    >
+      <body className="min-h-[100dvh] bg-[#F8F0E5] text-[#725541] font-sans antialiased selection:bg-[#A68165] selection:text-white">
         <div className="relative flex min-h-[100dvh] flex-col overflow-x-hidden">
-          {/* Subtle Ambient Glow */}
-          <div className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-96 w-96 -translate-x-1/2 rounded-full bg-gradient-to-tr from-[#EE4D2D]/20 to-purple-600/20 blur-3xl" />
+          {/* Gentle Sunlight Ambient Backdrop */}
+          <div className="pointer-events-none absolute -top-32 left-1/2 -z-10 h-96 w-96 -translate-x-1/2 rounded-full bg-gradient-to-tr from-[#EFE0CE]/70 via-[#F8EBE6]/60 to-[#FFFDF8]/40 blur-3xl" />
+          <div className="pointer-events-none absolute top-1/3 -right-32 -z-10 h-80 w-80 rounded-full bg-[#EFE0CE]/40 blur-3xl" />
 
           <main className="flex-1">{children}</main>
 
-          <footer id="app-footer" className="border-t border-slate-800/80 pt-6 pb-28 sm:pb-10 safe-sticky-bottom text-center text-xs text-slate-500 px-4">
-            <p className="font-semibold text-slate-400">ShopeeLink Pro &copy; {new Date().getFullYear()} &bull; Hệ thống tối ưu chuyển đổi Affiliate & Săn Voucher</p>
-            <p className="mt-1.5 text-[11px] text-slate-400 max-w-xl mx-auto leading-relaxed">
-              * Ưu đãi đối tác 25% (tối đa 500k) được kích hoạt tự động theo ngân sách khuyến mãi và điều kiện từng ngành hàng của Shopee. Mức giảm thực tế căn cứ theo giỏ hàng tại bước thanh toán trong App Shopee.
+          <footer
+            id="app-footer"
+            className="border-t border-[#D6BDA5]/30 bg-[#EFE0CE]/40 pt-8 pb-28 sm:pb-10 safe-sticky-bottom text-center text-xs text-[#8E7764] px-4"
+          >
+            <p className="font-brand italic text-base font-bold text-[#725541]">
+              Nàng thơ làm mẹ ♡
+            </p>
+            <p className="mt-1 text-xs text-[#8E7764]">
+              Chia sẻ những điều nhỏ bé, bằng thật nhiều yêu thương &bull; Chuyện nhỏ của mẹ Ngân & Sữa
+            </p>
+            <p className="mt-3 text-[11px] text-[#A68F7E] max-w-xl mx-auto leading-relaxed">
+              * Khi tạo link mua hàng qua website, đơn hàng có thể được áp dụng mã giảm giá đối tác Shopee tùy theo điều kiện giỏ hàng và ngân sách của sàn. Mẹ Ngân có thể nhận một phần hoa hồng nhỏ để duy trì góc nhỏ này.
+            </p>
+            <p className="mt-3 text-[10px] text-[#B8A494]">
+              &copy; {new Date().getFullYear()} Nàng thơ làm mẹ &bull; Made with love for Sữa & các mẹ ♡
             </p>
           </footer>
         </div>

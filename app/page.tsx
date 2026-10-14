@@ -1,37 +1,29 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { Navbar } from '@/components/Navbar';
 import { WebViewNotice } from '@/components/WebViewNotice';
-import { LiveSaleTicker } from '@/components/LiveSaleTicker';
+import { GentleSavingsTicker } from '@/components/GentleSavingsTicker';
 import { ConvertForm } from '@/components/ConvertForm';
 import { ResultCard } from '@/components/ResultCard';
-import { TopVouchers } from '@/components/TopVouchers';
+import { CuratedShelf } from '@/components/CuratedShelf';
 import { RecentConversions } from '@/components/RecentConversions';
 import { TutorialGuide } from '@/components/TutorialGuide';
+import { AboutMom } from '@/components/AboutMom';
+import { FaqSection } from '@/components/FaqSection';
 import { SocialProofToast } from '@/components/SocialProofToast';
 import { ClipboardDetector } from '@/components/ClipboardDetector';
-import { Sparkles } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { ConvertApiResponse } from '@/app/api/convert/route';
-import { getDynamicSocialProofCount } from '@/lib/marketing/time-slots';
 import { saveRecentConversion } from '@/lib/marketing/recent-history';
 
 export default function HomePage() {
   const [result, setResult] = useState<ConvertApiResponse['data'] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [socialCount, setSocialCount] = useState<number>(1482);
   const [initialUrl, setInitialUrl] = useState<string>('');
   const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState<number>(0);
   const resultRef = useRef<HTMLDivElement>(null);
-
-  // Khởi tạo số người săn sale động
-  useEffect(() => {
-    setSocialCount(getDynamicSocialProofCount());
-    const interval = setInterval(() => {
-      setSocialCount(getDynamicSocialProofCount());
-    }, 45000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Xử lý Web Share Target API khi người dùng chia sẻ từ App Shopee sang Web
   useEffect(() => {
@@ -50,7 +42,7 @@ export default function HomePage() {
   const handleConvertSuccess = (data: NonNullable<ConvertApiResponse['data']>) => {
     setResult(data);
 
-    // Lưu vào lịch sử săn sale cá nhân (LocalStorage)
+    // Lưu vào lịch sử cá nhân (LocalStorage)
     saveRecentConversion({
       cleanUrl: data.cleanUrl,
       slug: data.slug,
@@ -76,8 +68,15 @@ export default function HomePage() {
     }
   };
 
+  const handleScrollToShelf = () => {
+    const el = document.getElementById('curated-shelf');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
-    <div className="flex min-h-[100dvh] flex-col">
+    <div className="flex min-h-[100dvh] flex-col bg-[#F8F0E5] text-[#725541]">
       {/* 1-Tap Clipboard Auto-Detect Toast */}
       <ClipboardDetector
         onSelectUrl={(url) => setInitialUrl(url)}
@@ -85,57 +84,64 @@ export default function HomePage() {
       />
 
       {/* Navbar Header */}
-      <Navbar onScrollToGuide={handleScrollToGuide} />
+      <Navbar
+        onScrollToGuide={handleScrollToGuide}
+        onScrollToShelf={handleScrollToShelf}
+      />
 
       {/* Main Container */}
-      <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col items-center px-3 pt-3 pb-8 text-center sm:px-4 sm:pt-6 sm:pb-12">
-        {/* Banner phát hiện TikTok / Facebook In-App WebView (Slim Ticker) */}
+      <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col items-center px-3.5 pt-3 pb-12 text-center sm:px-6 sm:pt-6 sm:pb-16">
+        {/* Banner phát hiện TikTok / Facebook In-App WebView */}
         <WebViewNotice />
 
-        {/* Hero Section: Compact Above-The-Fold */}
-        <div className="max-w-xl px-1">
-          <div className="inline-flex items-center gap-1 rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-0.5 text-[10px] font-bold text-orange-400 sm:text-xs">
-            <Sparkles className="h-3 w-3 text-amber-400" />
-            <span>Mã Giảm Giá 25% Độc Quyền Toàn Sàn</span>
+        {/* Hero Section: Ấm áp & Gần gũi */}
+        <div className="max-w-xl px-1 pt-1 sm:pt-2">
+          {/* Avatar Mẹ Ngân & Bé Sữa */}
+          <div className="mx-auto mb-2.5 flex justify-center">
+            <div className="relative h-16 w-16 sm:h-20 sm:w-20 overflow-hidden rounded-full border-2 border-[#D6BDA5] shadow-warm">
+              <Image
+                src="/images/avatar-ngan-va-sua.png"
+                alt="Mẹ Ngân và Bé Sữa"
+                width={80}
+                height={80}
+                className="object-cover"
+                priority
+              />
+            </div>
           </div>
 
-          <h1 className="mt-2 text-xl font-black tracking-tight sm:mt-3 sm:text-4xl">
-            <span className="text-white">Dán Link Shopee</span>
-            <br />
-            <span className="bg-gradient-to-r from-[#EE4D2D] via-orange-400 to-amber-400 bg-clip-text text-transparent">
-              Giảm Ngay 25% Mọi Đơn Hàng
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-[#D6BDA5] bg-[#EFE0CE]/60 px-3 py-0.5 text-xs font-semibold text-[#725541]">
+            <Heart className="h-3 w-3 text-[#A68165] fill-[#A68165]" />
+            <span>Góc nhỏ của mẹ Ngân & Sữa ♡</span>
+          </div>
+
+          <h1 className="mt-2 text-2xl font-bold tracking-tight sm:mt-3 sm:text-4xl text-[#725541]">
+            <span className="font-brand italic block font-extrabold text-[#725541]">
+              Nàng thơ làm mẹ
+            </span>
+            <span className="text-base sm:text-2xl font-heading font-medium text-[#8E7764] block mt-1">
+              Tạo Link Mua Hàng Cùng Mẹ Ngân
             </span>
           </h1>
 
-          <p className="mt-1 text-xs text-slate-400 sm:mt-2 sm:text-sm leading-relaxed">
-            Tự động kích hoạt voucher đối tác tối đa 500k và mở thẳng App Shopee.
+          <p className="mt-2 text-xs text-[#8E7764] sm:mt-2.5 sm:text-sm leading-relaxed max-w-md mx-auto">
+            Chào bạn đến với góc nhỏ của mẹ Sữa. Nếu bạn muốn tìm lại một món đồ mình chia sẻ, chỉ cần dán link Shopee vào đây để lấy link mua hàng nhanh chóng nhé!
           </p>
         </div>
 
-        {/* Live Sale Ticker (Phiên Săn Sale Hiện Tại & Đồng Hồ Đếm Ngược) */}
+        {/* Gentle Savings Ticker (Thông điệp sẻ chia) */}
         <div className="mt-3.5 w-full flex justify-center">
-          <LiveSaleTicker />
+          <GentleSavingsTicker />
         </div>
 
-        {/* Form Dán Link 1-Click (Hỗ trợ tự động điền từ Share Target hoặc Clipboard) */}
-        <div className="mt-3 w-full flex justify-center sm:mt-4">
+        {/* Form Dán Link 1-Click */}
+        <div className="mt-3.5 w-full flex justify-center">
           <ConvertForm
             onSuccess={handleConvertSuccess}
             isLoading={isLoading}
             setIsLoading={setIsLoading}
             initialUrl={initialUrl}
           />
-        </div>
-
-        {/* Dynamic Social Proof Ticker */}
-        <div className="mt-2.5 flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75"></span>
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500"></span>
-          </span>
-          <span>
-            🔥 <strong>{new Intl.NumberFormat('vi-VN').format(socialCount)}</strong> người đã áp mã thành công hôm nay
-          </span>
         </div>
 
         {/* Result Card khi convert thành công */}
@@ -146,28 +152,47 @@ export default function HomePage() {
         )}
 
         {/* Divider */}
-        <div className="my-5 h-px w-full max-w-2xl bg-gradient-to-r from-transparent via-slate-800 to-transparent sm:my-8" />
+        <div className="my-7 h-px w-full max-w-xl bg-gradient-to-r from-transparent via-[#D6BDA5]/50 to-transparent" />
 
-        {/* Widget Top Voucher Hot (Xoay theo phiên tự động) */}
+        {/* Tủ Đồ Tuyển Chọn Bé Sữa (Curated Shelf) */}
         <div className="w-full flex justify-center">
-          <TopVouchers />
+          <CuratedShelf onSelectProduct={(url) => setInitialUrl(url)} />
         </div>
 
-        {/* Lịch Sử Săn Sale Cá Nhân (Recent Conversions) */}
-        <div className="w-full flex justify-center mt-5">
+        {/* Divider */}
+        <div className="my-7 h-px w-full max-w-xl bg-gradient-to-r from-transparent via-[#D6BDA5]/50 to-transparent" />
+
+        {/* Lịch Sử Dán Link Gần Đây */}
+        <div className="w-full flex justify-center">
           <RecentConversions refreshTrigger={historyRefreshTrigger} />
         </div>
 
         {/* Divider */}
-        <div className="my-5 h-px w-full max-w-2xl bg-gradient-to-r from-transparent via-slate-800 to-transparent sm:my-8" />
+        <div className="my-7 h-px w-full max-w-xl bg-gradient-to-r from-transparent via-[#D6BDA5]/50 to-transparent" />
 
-        {/* Hướng Dẫn 3 Bước Săn Sale */}
+        {/* Hướng Dẫn 3 Bước Mua Hàng */}
         <div className="w-full flex justify-center">
           <TutorialGuide />
         </div>
+
+        {/* Divider */}
+        <div className="my-7 h-px w-full max-w-xl bg-gradient-to-r from-transparent via-[#D6BDA5]/50 to-transparent" />
+
+        {/* Góc Về Mẹ Ngân & Bé Sữa */}
+        <div className="w-full flex justify-center">
+          <AboutMom />
+        </div>
+
+        {/* Divider */}
+        <div className="my-7 h-px w-full max-w-xl bg-gradient-to-r from-transparent via-[#D6BDA5]/50 to-transparent" />
+
+        {/* Câu Hỏi Thường Gặp */}
+        <div className="w-full flex justify-center">
+          <FaqSection />
+        </div>
       </div>
 
-      {/* Floating Social Proof Toast (Thông Báo Chốt Đơn Động) */}
+      {/* Floating Social Proof Toast */}
       <SocialProofToast />
     </div>
   );

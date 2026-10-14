@@ -3,29 +3,35 @@
 @tailwind utilities;
 
 :root {
-  --background: #090d16;
-  --foreground: #f1f5f9;
+  --background: #F8F0E5;
+  --foreground: #725541;
+  --card-bg: #FFFDF8;
+  --card-border: #EFE0CE;
+  --accent-brown: #A68165;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family: var(--font-be-vietnam), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Glassmorphism styling */
-.glass-panel {
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+/* Warm Feminine styling */
+.glass-warm {
+  background: rgba(255, 253, 248, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(214, 189, 165, 0.35);
 }
 
-.glow-shopee {
-  box-shadow: 0 0 25px -5px rgba(238, 77, 45, 0.4);
+.card-warm {
+  background-color: #FFFDF8;
+  border: 1px solid #EFE0CE;
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 20px -2px rgba(114, 85, 65, 0.06);
 }
 
 /* Mobile optimizations */
@@ -48,4 +54,23 @@ body {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Delicate subtle scrollbar for desktop */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F8F0E5;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D6BDA5;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #A68165;
 }

@@ -9,13 +9,22 @@ export interface SocialProofEvent {
 }
 
 const PHONE_PREFIXES = ['098', '097', '096', '091', '090', '093', '086', '089', '077', '038', '035'];
-const CATEGORIES = ['Thời trang', 'Đồ gia dụng', 'Công nghệ', 'Mỹ phẩm', 'Đời sống', 'Mẹ & Bé', 'Giày dép'];
+const CATEGORIES = [
+  'Đồ ăn dặm cho bé',
+  'Tã bỉm organic',
+  'Máy móc mẹ & bé',
+  'Đồ chơi Montessori',
+  'Thời trang bé yêu',
+  'Góc cưng chiều mẹ',
+];
+
 const VOUCHER_ACTIONS = [
-  { action: 'vừa áp mã Giảm 25%', title: 'Voucher Đối Tác Meta', minSaved: 50000, maxSaved: 125000 },
-  { action: 'vừa kích hoạt Freeship 0đ', title: 'Freeship Xtra Toàn Sàn', minSaved: 25000, maxSaved: 40000 },
-  { action: 'vừa áp mã Giảm 20%', title: 'Voucher Shopee Video & Live', minSaved: 45000, maxSaved: 95000 },
-  { action: 'vừa chốt đơn Hàng Hiệu', title: 'Voucher Mall Chính Hãng', minSaved: 80000, maxSaved: 250000 },
-  { action: 'vừa nhận mã Hoàn 30% Xu', title: 'Hoàn Xu Đơn Hàng', minSaved: 30000, maxSaved: 65000 },
+  { action: 'vừa tạo link Balo bé xinh', title: 'Ưu Đãi Đối Tác', minSaved: 45000, maxSaved: 95000 },
+  { action: 'vừa áp mã Giảm 25% tã bỉm', title: 'Trợ Giá Bỉm Sữa', minSaved: 50000, maxSaved: 150000 },
+  { action: 'vừa tạo link Máy tiệt trùng UVC', title: 'Voucher Mall Chính Hãng', minSaved: 120000, maxSaved: 350000 },
+  { action: 'vừa nhận mã Freeship 0đ ăn dặm', title: 'Freeship Xtra', minSaved: 25000, maxSaved: 40000 },
+  { action: 'vừa tạo link Đồ chơi gỗ giác quan', title: 'Giảm Giá Độc Quyền', minSaved: 35000, maxSaved: 85000 },
+  { action: 'vừa chốt đơn Ghế ăn dặm', title: 'Voucher Shopee Mall', minSaved: 80000, maxSaved: 220000 },
 ];
 
 export function getRandomSocialProofEvent(): SocialProofEvent {

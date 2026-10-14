@@ -11,6 +11,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'cf.shopee.vn',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
     ],
   },
   async headers() {

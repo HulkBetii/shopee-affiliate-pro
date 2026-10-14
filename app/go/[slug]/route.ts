@@ -32,23 +32,23 @@ export async function GET(
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="robots" content="noindex, nofollow">
-  <title>Liên kết ưu đãi đã hết hạn | ShopeeLink Pro</title>
+  <title>Liên kết mua hàng đã hết hạn | Nàng thơ làm mẹ ♡</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background-color: #090d16; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; text-align: center; }
-    .card { background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 36px 24px; max-width: 400px; width: 100%; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6); }
-    .icon { font-size: 44px; margin-bottom: 16px; }
-    h2 { font-size: 20px; font-weight: 800; margin-bottom: 10px; color: #fff; }
-    p { font-size: 14px; color: #94a3b8; line-height: 1.5; margin-bottom: 24px; }
-    .btn { display: block; width: 100%; background: linear-gradient(135deg, #ee4d2d, #ff5722); color: #fff; text-decoration: none; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 15px; }
+    body { background-color: #F8F0E5; color: #725541; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; text-align: center; }
+    .card { background: #FFFDF8; border: 1px solid #D6BDA5; border-radius: 24px; padding: 36px 24px; max-width: 400px; width: 100%; box-shadow: 0 10px 30px rgba(114, 85, 65, 0.08); }
+    .icon { font-size: 40px; margin-bottom: 16px; }
+    h2 { font-size: 20px; font-weight: 800; margin-bottom: 10px; color: #725541; }
+    p { font-size: 13px; color: #8E7764; line-height: 1.6; margin-bottom: 24px; }
+    .btn { display: block; width: 100%; background: linear-gradient(135deg, #A68165, #725541); color: #fff; text-decoration: none; padding: 14px; border-radius: 14px; font-weight: 700; font-size: 15px; box-shadow: 0 6px 20px rgba(166, 129, 101, 0.3); }
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="icon">⏰</div>
+    <div class="icon">🌸</div>
     <h2>Liên kết đã hết hạn</h2>
-    <p>Đường link ưu đãi này đã hết hạn lưu trữ bảo mật (24 giờ). Vui lòng dán lại link sản phẩm để kích hoạt mã giảm giá mới nhất.</p>
-    <a href="/" class="btn">TẠO MÃ GIẢM GIÁ MỚI</a>
+    <p>Đường link này đã hết thời gian lưu tạm trên máy. Bạn vui lòng quay lại dán lại link để mẹ Ngân chuẩn bị link mới nhất nhé ♡</p>
+    <a href="/" class="btn">TẠO LINK MỚI NGAY</a>
   </div>
 </body>
 </html>`;
@@ -76,12 +76,12 @@ export async function GET(
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="robots" content="noindex, nofollow">
-  <title>Đang chuyển hướng tới Shopee...</title>
+  <title>Đang mở Shopee cùng mẹ Sữa...</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background-color: #090d16;
-      color: #f1f5f9;
+      background-color: #F8F0E5;
+      color: #725541;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       display: flex;
       flex-direction: column;
@@ -92,57 +92,57 @@ export async function GET(
       text-align: center;
     }
     .card {
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(238, 77, 45, 0.3);
+      background: #FFFDF8;
+      border: 1px solid #D6BDA5;
       border-radius: 24px;
       padding: 32px 24px;
       max-width: 420px;
       width: 100%;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 10px 30px rgba(114, 85, 65, 0.1);
     }
     .badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(238, 77, 45, 0.15);
-      color: #ff6b4a;
-      border: 1px solid rgba(238, 77, 45, 0.4);
-      padding: 8px 16px;
+      background: #EFE0CE;
+      color: #725541;
+      border: 1px solid #D6BDA5;
+      padding: 7px 14px;
       border-radius: 9999px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
-      margin-bottom: 24px;
+      margin-bottom: 22px;
     }
     .spinner {
-      width: 48px;
-      height: 48px;
-      border: 4px solid rgba(238, 77, 45, 0.2);
-      border-top-color: #ee4d2d;
+      width: 44px;
+      height: 44px;
+      border: 4px solid #EFE0CE;
+      border-top-color: #A68165;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
-      margin: 0 auto 20px auto;
+      margin: 0 auto 18px auto;
     }
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-    h2 { font-size: 21px; font-weight: 800; margin-bottom: 8px; color: #fff; }
-    p { font-size: 14px; color: #94a3b8; line-height: 1.5; margin-bottom: 24px; }
+    h2 { font-size: 20px; font-weight: 800; margin-bottom: 8px; color: #725541; }
+    p { font-size: 13px; color: #8E7764; line-height: 1.5; margin-bottom: 22px; }
     .btn-primary {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
       width: 100%;
-      min-height: 52px;
-      background: linear-gradient(135deg, #ee4d2d, #ff5722);
+      min-height: 50px;
+      background: linear-gradient(135deg, #A68165, #725541);
       color: #fff;
       text-decoration: none;
       padding: 14px;
       border-radius: 14px;
-      font-weight: 800;
-      font-size: 16px;
-      box-shadow: 0 8px 24px rgba(238, 77, 45, 0.4);
-      margin-bottom: 12px;
+      font-weight: 700;
+      font-size: 15px;
+      box-shadow: 0 6px 20px rgba(166, 129, 101, 0.35);
+      margin-bottom: 10px;
       transition: transform 0.15s ease;
     }
     .btn-primary:active {
@@ -151,9 +151,9 @@ export async function GET(
     .btn-secondary {
       display: block;
       width: 100%;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #94a3b8;
+      background: #F8F0E5;
+      border: 1px solid #D6BDA5;
+      color: #725541;
       text-decoration: none;
       padding: 12px;
       border-radius: 12px;
@@ -163,55 +163,55 @@ export async function GET(
     .fallback-hint {
       margin-top: 14px;
       font-size: 12px;
-      color: #94a3b8;
+      color: #A68F7E;
     }
     .fallback-hint a {
-      color: #ff6b4a;
+      color: #A68165;
       text-decoration: underline;
+      font-weight: 600;
     }
     .tip {
       margin-top: 20px;
       padding-top: 16px;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      font-size: 12px;
-      color: #94a3b8;
+      border-top: 1px solid #D6BDA5/30;
+      font-size: 11px;
+      color: #A68F7E;
       line-height: 1.5;
     }
     .in-app-alert {
       display: none;
       margin-top: 16px;
       padding: 12px;
-      border-radius: 12px;
-      background: rgba(245, 158, 11, 0.12);
-      border: 1px solid rgba(245, 158, 11, 0.3);
-      color: #fbbf24;
+      border-radius: 14px;
+      background: #F8F0E5;
+      border: 1px solid #D6BDA5;
+      color: #725541;
       font-size: 12px;
       text-align: left;
-      line-height: 1.4;
+      line-height: 1.5;
     }
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="badge">🎁 Voucher Giảm ${escapeHtmlText(String(discountPercentage))}% (Tối đa ${escapeHtmlText(maxDiscountAmount)})</div>
+    <div class="badge">🌸 Ưu đãi đối tác giảm ${escapeHtmlText(String(discountPercentage))}% (Tối đa ${escapeHtmlText(maxDiscountAmount)})</div>
     <div class="spinner"></div>
-    <h2>Đang Mở Ứng Dụng Shopee</h2>
-    <p>Hệ thống đang tự động kích hoạt mã ưu đãi độc quyền cho đơn hàng của bạn...</p>
+    <h2>Đang Mở Shopee Cùng Mẹ Sữa</h2>
+    <p>Góc nhỏ của mẹ Ngân đang chuẩn bị liên kết mua hàng cho bạn nhé ♡</p>
     
-    <a href="${escapeHtmlAttr(targetWithVoucherUrl)}" class="btn-primary" id="openAppBtn">MỞ APP SHOPEE NGAY</a>
+    <a href="${escapeHtmlAttr(targetWithVoucherUrl)}" class="btn-primary" id="openAppBtn">MỞ XEM TRÊN SHOPEE</a>
     <a href="${escapeHtmlAttr(targetWithVoucherUrl)}" class="btn-secondary" id="openWebBtn">Tiếp tục trên Trình duyệt Web</a>
 
     <div class="fallback-hint">
-      Chưa thấy mở App? <a href="${escapeHtmlAttr(deepLink)}" id="forceOpenApp">Bấm để ép mở lại App</a>
+      Chưa thấy mở App? <a href="${escapeHtmlAttr(deepLink)}" id="forceOpenApp">Bấm vào đây để mở App</a>
     </div>
 
     <div id="inAppNotice" class="in-app-alert">
-      ⚠️ <b>Mẹo mở App Shopee nhanh:</b><br/>
-      Nếu đang xem trong TikTok / Facebook / Zalo, hãy bấm biểu tượng <b>⋯</b> ở góc trên cùng và chọn <b>"Mở bằng trình duyệt Safari/Chrome"</b> để vào thẳng App và không bị mất mã.
+      💡 <b>Mẹo mở nhanh:</b> Nếu bạn đang xem trong TikTok / Facebook, hãy bấm dấu <b>⋯</b> ở góc trên cùng và chọn <b>"Mở bằng trình duyệt Safari/Chrome"</b> để vào thẳng App Shopee nhé ♡.
     </div>
 
     <div class="tip">
-      🛡️ Thanh toán bảo mật trực tiếp trong Shopee App • Giữ nguyên quyền lợi bảo hành chính hãng
+      🛡️ Thanh toán trực tiếp trong Shopee App • Giữ nguyên quyền lợi bảo hành chính hãng
     </div>
   </div>
 
@@ -249,7 +249,6 @@ export async function GET(
         if (isAndroid && androidIntent) {
           window.location.href = androidIntent;
         } else {
-          // Trên iOS và Desktop, sử dụng Universal Link Shopee chính thức
           window.location.href = targetUrl;
         }
       }, 350);
