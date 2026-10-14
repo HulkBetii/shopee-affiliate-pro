@@ -95,7 +95,7 @@ export default function HomePage() {
         <WebViewNotice />
 
         {/* Hero Section: Ấm áp & Gần gũi */}
-        <div className="max-w-xl px-1 pt-1 sm:pt-2">
+        <div className="max-w-xl px-1 pt-3 sm:pt-4">
           {/* Avatar Mẹ Ngân & Bé Sữa */}
           <div className="mx-auto mb-2.5 flex justify-center">
             <div className="relative h-20 w-20 sm:h-24 sm:w-24 overflow-hidden rounded-full border-[2.5px] border-[#D6BDA5] shadow-warm">

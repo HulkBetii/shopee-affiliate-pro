@@ -67,7 +67,7 @@ export const CURATED_PRODUCTS: CuratedProduct[] = [
     price: '450.000đ',
     originalPrice: '590.000đ',
     tag: 'Đỡ trớ sữa',
-    imageUrl: 'https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=500&auto=format&fit=crop&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=500&auto=format&fit=crop&q=80',
     shopeeUrl: 'https://shopee.vn/product/234567/890123',
     personalNote: 'Độ nghiêng 15 độ chuẩn y khoa, bé bú no nằm chơi ngoan không bị ọc sữa lên mũi, mẹ rảnh tay làm việc nhà.',
     rating: 4.8,

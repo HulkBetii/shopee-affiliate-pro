@@ -110,7 +110,10 @@ export const CuratedShelf: React.FC<CuratedShelfProps> = ({ onSelectProduct }) =
             >
               <div>
                 {/* Ảnh Thumbnail Sản Phẩm */}
-                <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-[#EFE0CE]/40">
+                <div
+                  className="relative aspect-square w-full overflow-hidden rounded-xl bg-[#EFE0CE]/40"
+                  style={{ position: 'relative', aspectRatio: '1 / 1', width: '100%' }}
+                >
                   <Image
                     src={product.imageUrl}
                     alt={product.name}
