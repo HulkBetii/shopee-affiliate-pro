@@ -17,7 +17,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onScrollToGuide, onScrollToShelf
         <div className="flex items-center gap-2.5">
           <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border-2 border-[#D6BDA5] shadow-sm">
             <Image
-              src="/images/avatar-ngan-va-sua.png"
+              src="/images/avatar-ngan-va-sua.jpg"
               alt="Mẹ Ngân và bé Sữa"
               width={36}
               height={36}

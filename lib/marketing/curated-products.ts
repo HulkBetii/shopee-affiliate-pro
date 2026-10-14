@@ -162,7 +162,7 @@ export const CURATED_PRODUCTS: CuratedProduct[] = [
     price: '280.000đ',
     originalPrice: '380.000đ',
     tag: 'Rèn tập trung',
-    imageUrl: 'https://images.unsplash.com/photo-1566576912321-d58ddd74b4b2?w=500&auto=format&fit=crop&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=500&auto=format&fit=crop&q=80',
     shopeeUrl: 'https://shopee.vn/product/901234/567890',
     personalNote: 'Gỗ mộc sấy mịn không mùi sơn độc hại. Bé Sữa có thể tự ngồi tỉ mẩn ghép khối cả 30 phút ngoan ngoãn.',
     rating: 5.0,

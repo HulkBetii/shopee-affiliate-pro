@@ -98,13 +98,13 @@ export default function HomePage() {
         <div className="max-w-xl px-1 pt-1 sm:pt-2">
           {/* Avatar Mẹ Ngân & Bé Sữa */}
           <div className="mx-auto mb-2.5 flex justify-center">
-            <div className="relative h-16 w-16 sm:h-20 sm:w-20 overflow-hidden rounded-full border-2 border-[#D6BDA5] shadow-warm">
+            <div className="relative h-20 w-20 sm:h-24 sm:w-24 overflow-hidden rounded-full border-[2.5px] border-[#D6BDA5] shadow-warm">
               <Image
-                src="/images/avatar-ngan-va-sua.png"
+                src="/images/avatar-ngan-va-sua.jpg"
                 alt="Mẹ Ngân và Bé Sữa"
-                width={80}
-                height={80}
-                className="object-cover"
+                width={96}
+                height={96}
+                className="object-cover h-full w-full"
                 priority
               />
             </div>

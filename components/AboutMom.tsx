@@ -15,13 +15,13 @@ export const AboutMom: React.FC = () => {
 
         <div className="relative flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-5 text-center sm:text-left">
           {/* Avatar Mẹ Ngân & Bé Sữa */}
-          <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border-2 border-[#D6BDA5] shadow-warm">
+          <div className="relative h-24 w-24 sm:h-28 sm:w-28 shrink-0 overflow-hidden rounded-2xl border-2 border-[#D6BDA5] shadow-warm bg-[#EFE0CE]/30">
             <Image
-              src="/images/avatar-ngan-va-sua.png"
+              src="/images/avatar-ngan-va-sua.jpg"
               alt="Mẹ Ngân và bé Sữa"
-              width={80}
-              height={80}
-              className="object-cover"
+              width={112}
+              height={112}
+              className="object-cover h-full w-full"
             />
           </div>
 
