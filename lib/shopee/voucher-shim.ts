@@ -3,6 +3,7 @@ import { cacheService } from '../cache';
 import { isShopeeShortUrl } from './parser';
 import { defaultShopeeClient } from './client';
 import { alertAffiliateLinkFailure } from '../alerts';
+import { buildAffiliateTrackingUrl } from './tracking-builder';
 
 export interface VoucherShimData {
   slug: string;
@@ -95,11 +96,20 @@ export function extractShortLinkCode(urlStr: string): string | null {
 }
 
 /**
- * Slug mang mã short link (s<code>) để /go tự phục hồi không cần cache; ngược lại sinh slug ngẫu nhiên
+ * Slug mang mã short link (s<code>) để /go tự phục hồi không cần cache;
+ * Khi dùng fallback (không phải short link) thì sinh slug p<shop36>_<item36> để tự phục hồi stateless;
+ * ngược lại sinh slug ngẫu nhiên
  */
-export function buildShimSlug(affiliateUrl: string): string {
+export function buildShimSlug(
+  affiliateUrl: string,
+  options?: { shopId?: string; itemId?: string }
+): string {
   const code = extractShortLinkCode(affiliateUrl);
-  return code ? `s${code}` : generateRandomSlug(8);
+  if (code) return `s${code}`;
+  if (options?.shopId && options?.itemId) {
+    return generateStatelessProductSlug(options.shopId, options.itemId);
+  }
+  return generateRandomSlug(8);
 }
 
 /**
@@ -191,7 +201,11 @@ export async function createVoucherShim(params: {
   itemId?: string;
   shopId?: string;
 }): Promise<VoucherShimData> {
-  const shimData = buildShimData({ ...params, slug: buildShimSlug(params.affiliateUrl) });
+  const slug = buildShimSlug(params.affiliateUrl, {
+    shopId: params.shopId,
+    itemId: params.itemId,
+  });
+  const shimData = buildShimData({ ...params, slug });
 
   await cacheService.set(`shopee:shim:${shimData.slug}`, shimData, SHIM_TTL_SECONDS);
 
@@ -200,7 +214,7 @@ export async function createVoucherShim(params: {
 
 /**
  * Tra cứu thông tin chuyển tiếp từ slug
- * Cơ chế: Cache Hit (chỉ nhận short link chính thức) -> Tự phục hồi theo loại slug khi Cache Miss
+ * Cơ chế: Cache Hit (chỉ nhận short link chính thức trừ khi bật ALLOW_DIRECT_TRACKING_FALLBACK) -> Tự phục hồi theo loại slug khi Cache Miss
  */
 export async function getVoucherShimBySlug(slug: string): Promise<VoucherShimData | null> {
   const cacheKey = `shopee:shim:${slug}`;
@@ -234,6 +248,13 @@ export async function getVoucherShimBySlug(slug: string): Promise<VoucherShimDat
       await cacheService.set(cacheKey, recovered, SHIM_TTL_SECONDS);
       return recovered;
     } catch (err: unknown) {
+      if (process.env.ALLOW_DIRECT_TRACKING_FALLBACK === 'true') {
+        const affiliateId = process.env.SHOPEE_AFFILIATE_ID || 'an_17315740682';
+        const affiliateUrl = buildAffiliateTrackingUrl({ cleanUrl, affiliateId, includeMetaVoucher: true });
+        const recovered = buildShimData({ slug, originalUrl: cleanUrl, cleanUrl, affiliateUrl, itemId, shopId });
+        await cacheService.set(cacheKey, recovered, SHIM_TTL_SECONDS);
+        return recovered;
+      }
       const details = (err as { details?: { reason?: string } })?.details;
       await alertAffiliateLinkFailure(
         details?.reason || (err as Error)?.message || 'Unknown error',

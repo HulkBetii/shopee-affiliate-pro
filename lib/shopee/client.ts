@@ -166,7 +166,7 @@ export class ShopeeClient {
 
     // Tầng 2: Nếu bật cờ ALLOW_DIRECT_TRACKING_FALLBACK, fallback sang direct tracking URL để cứu traffic
     if (process.env.ALLOW_DIRECT_TRACKING_FALLBACK === 'true') {
-      const customAffiliateId = process.env.SHOPEE_AFFILIATE_ID;
+      const customAffiliateId = process.env.SHOPEE_AFFILIATE_ID || 'an_17315740682';
       if (customAffiliateId) {
         console.warn(`[ShopeeClient] Session short link unavailable (${sessionFailure}), using direct tracking fallback.`);
         return buildAffiliateTrackingUrl({
