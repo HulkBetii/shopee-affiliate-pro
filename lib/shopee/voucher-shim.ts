@@ -205,9 +205,9 @@ export async function createVoucherShim(params: {
 export async function getVoucherShimBySlug(slug: string): Promise<VoucherShimData | null> {
   const cacheKey = `shopee:shim:${slug}`;
 
-  // Tầng 1: Cache (Redis / Memory). Bỏ qua shim cũ trỏ tới link tự ghép (không được Shopee ghi nhận)
+  // Tầng 1: Cache (Redis / Memory). Bỏ qua shim cũ trỏ tới link tự ghép trừ khi bật ALLOW_DIRECT_TRACKING_FALLBACK
   const cached = await cacheService.get<VoucherShimData>(cacheKey);
-  if (cached && isShopeeShortUrl(cached.affiliateUrl)) {
+  if (cached && (isShopeeShortUrl(cached.affiliateUrl) || process.env.ALLOW_DIRECT_TRACKING_FALLBACK === 'true')) {
     return cached;
   }
 

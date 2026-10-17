@@ -90,6 +90,14 @@ export class ShopeeSessionClient {
         'Referer': 'https://affiliate.shopee.vn/offer/custom_link',
         'Origin': 'https://affiliate.shopee.vn',
         'X-Api-Source': 'pc',
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7',
+        'sec-ch-ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"',
+        'sec-fetch-dest': 'empty',
+        'sec-fetch-mode': 'cors',
+        'sec-fetch-site': 'same-origin',
       };
 
       const csrfMatch = this.sessionCookie.match(/csrftoken=([^;]+)/i);
@@ -105,8 +113,9 @@ export class ShopeeSessionClient {
       });
 
       if (!response.ok) {
-        console.warn(`[ShopeeSessionClient] HTTP ${response.status} ${response.statusText} - Có thể session cookie cần refresh hoặc bị Shopee WAF chặn.`);
-        this.lastError = `HTTP ${response.status} ${response.statusText} (cookie expired or blocked by WAF?)`;
+        const bodySnippet = (await response.text().catch(() => '')).replace(/\s+/g, ' ').slice(0, 200);
+        console.warn(`[ShopeeSessionClient] HTTP ${response.status} ${response.statusText} - body=${bodySnippet}`);
+        this.lastError = `HTTP ${response.status} ${response.statusText} (cookie expired or blocked by WAF?) body=${bodySnippet}`;
         return null;
       }
 

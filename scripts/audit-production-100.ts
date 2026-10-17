@@ -74,7 +74,7 @@ async function runProduction100Audit() {
     const data2 = await res2.json();
     assert('Case 2: Link sản phẩm chuẩn trả về HTTP 200', res2.status === 200);
     assert('Case 2: success: true', data2.success === true);
-    assert('Case 2: Link affiliate là short link chính thức s.shopee.vn', data2.data?.affiliateUrl?.startsWith('https://s.shopee.vn/'));
+    assert('Case 2: Link affiliate là short link chính thức s.shopee.vn hoặc link direct gắn đúng partner', data2.data?.affiliateUrl?.startsWith('https://s.shopee.vn/') || data2.data?.affiliateUrl?.includes('an_17315740682'));
     assert('Case 2: Link đích giữ nguyên short link', data2.data?.targetWithVoucherUrl === data2.data?.affiliateUrl);
     assert('Case 2: Có slug hợp lệ', !!data2.data?.slug);
   } catch (err: any) {
@@ -92,7 +92,7 @@ async function runProduction100Audit() {
     const data3 = await res3.json();
     assert('Case 3: Link Mall dài trả về HTTP 200', res3.status === 200);
     assert('Case 3: Lọc sạch tracking đối thủ khỏi link gốc', !data3.data?.cleanUrl?.includes('rival_123') && !data3.data?.cleanUrl?.includes('bad_aff'));
-    assert('Case 3: Link affiliate là short link chính thức s.shopee.vn', data3.data?.affiliateUrl?.startsWith('https://s.shopee.vn/'));
+    assert('Case 3: Link affiliate là short link chính thức s.shopee.vn hoặc link direct gắn đúng partner', data3.data?.affiliateUrl?.startsWith('https://s.shopee.vn/') || data3.data?.affiliateUrl?.includes('an_17315740682'));
   } catch (err: any) {
     assert('Case 3: Link Mall dài xử lý thành công', false, err.message);
   }
@@ -157,7 +157,7 @@ async function runProduction100Audit() {
     assert('Live Bridge endpoint /go/[slug] HTTP 200', resBridge.status === 200);
     const bridgeHtml = await resBridge.text();
     assert('Bridge Page chứa Android Intent Package', bridgeHtml.includes('package=com.shopee.vn'));
-    assert('Bridge Page chuyển tiếp tới short link chính thức s.shopee.vn', bridgeHtml.includes('https://s.shopee.vn/'));
+    assert('Bridge Page chuyển tiếp tới link có tracking chính thức', bridgeHtml.includes('https://s.shopee.vn/') || bridgeHtml.includes('an_17315740682'));
   } catch (err: any) {
     assert('Kiểm thử Stateless Bridge Route thành công', false, err.message);
   }

@@ -1,6 +1,7 @@
 import { buildShopeeAuth } from './signer';
 import { defaultSessionClient } from './session-client';
 import { isShopeeShortUrl } from './parser';
+import { buildAffiliateTrackingUrl } from './tracking-builder';
 import {
   GENERATE_SHORT_LINK_MUTATION,
   PRODUCT_OFFER_QUERY,
@@ -161,6 +162,20 @@ export class ShopeeClient {
       sessionFailure = sessionLink
         ? `Session API returned a non short-link URL: ${sessionLink.slice(0, 120)}`
         : defaultSessionClient.getLastError() || 'Session API returned no short link';
+    }
+
+    // Tầng 2: Nếu bật cờ ALLOW_DIRECT_TRACKING_FALLBACK, fallback sang direct tracking URL để cứu traffic
+    if (process.env.ALLOW_DIRECT_TRACKING_FALLBACK === 'true') {
+      const customAffiliateId = process.env.SHOPEE_AFFILIATE_ID;
+      if (customAffiliateId) {
+        console.warn(`[ShopeeClient] Session short link unavailable (${sessionFailure}), using direct tracking fallback.`);
+        return buildAffiliateTrackingUrl({
+          cleanUrl: originUrl,
+          affiliateId: customAffiliateId,
+          subIds,
+          includeMetaVoucher: true,
+        });
+      }
     }
 
     // Không có Open API key và không ở mock mode -> không thể tạo link có hoa hồng.
