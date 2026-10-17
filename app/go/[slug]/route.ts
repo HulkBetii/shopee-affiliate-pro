@@ -244,6 +244,16 @@ export async function GET(
         });
       }
 
+      var forceBtn = document.getElementById('forceOpenApp');
+      if (forceBtn) {
+        forceBtn.addEventListener('click', function(e) {
+          if (isAndroid && androidIntent) {
+            e.preventDefault();
+            window.location.href = androidIntent;
+          }
+        });
+      }
+
       // Tự động chuyển tiếp thông minh sau 350ms
       setTimeout(function() {
         if (isAndroid && androidIntent) {

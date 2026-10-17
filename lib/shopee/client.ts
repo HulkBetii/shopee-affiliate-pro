@@ -1,6 +1,7 @@
 import { buildShopeeAuth } from './signer';
 import { defaultSessionClient } from './session-client';
 import { buildAffiliateTrackingUrl } from './tracking-builder';
+import { isShopeeShortUrl } from './parser';
 import {
   GENERATE_SHORT_LINK_MUTATION,
   PRODUCT_OFFER_QUERY,
@@ -145,23 +146,42 @@ export class ShopeeClient {
     originUrl: string,
     subIds?: string[]
   ): Promise<string> {
+    let sessionFailure = 'SHOPEE_SESSION_COOKIE is not configured';
+
     // Tầng 1: Nếu cấu hình Session Cookie, thử gọi API nội bộ Console sinh link s.shopee.vn
     if (defaultSessionClient.isAvailable()) {
       const sessionLink = await defaultSessionClient.generateShortLink(originUrl, subIds);
-      if (sessionLink) {
+      if (sessionLink && isShopeeShortUrl(sessionLink)) {
         return sessionLink;
+      }
+      sessionFailure = sessionLink
+        ? `Session API returned a non short-link URL: ${sessionLink.slice(0, 120)}`
+        : defaultSessionClient.getLastError() || 'Session API returned no short link';
+    }
+
+    // Tầng 2: Nếu bật cờ ALLOW_DIRECT_TRACKING_FALLBACK, fallback sang direct tracking URL để cứu traffic
+    if (process.env.ALLOW_DIRECT_TRACKING_FALLBACK === 'true') {
+      const customAffiliateId = process.env.SHOPEE_AFFILIATE_ID || 'an_17315740682';
+      if (customAffiliateId) {
+        console.warn(`[ShopeeClient] Session short link unavailable (${sessionFailure}), using direct tracking fallback.`);
+        return buildAffiliateTrackingUrl({
+          cleanUrl: originUrl,
+          affiliateId: customAffiliateId,
+          subIds,
+          includeMetaVoucher: true,
+        });
       }
     }
 
-    // Tầng 2: Nếu có cấu hình SHOPEE_AFFILIATE_ID, sinh Direct Tracking URL
-    const customAffiliateId = process.env.SHOPEE_AFFILIATE_ID;
-    if (customAffiliateId && !this.appId) {
-      return buildAffiliateTrackingUrl({
-        cleanUrl: originUrl,
-        affiliateId: customAffiliateId,
-        subIds,
-        includeMetaVoucher: true,
-      });
+    // Không có Open API key và không ở mock mode -> không thể tạo link có hoa hồng.
+    // Cookie đã cấu hình mà vẫn lỗi thì cũng báo lỗi luôn, không để link mock che mất sự cố (kể cả ở dev).
+    const hasOpenApiKeys = !!this.appId && !!this.secretKey;
+    if (!hasOpenApiKeys && (!this.mockMode || defaultSessionClient.isAvailable())) {
+      throw new ShopeeApiError(
+        'Không tạo được short link affiliate chính thức (s.shopee.vn).',
+        'AFFILIATE_LINK_UNAVAILABLE',
+        { reason: sessionFailure }
+      );
     }
 
     // Tầng 3: Gọi Open API GraphQL (nếu có key thật) hoặc Mock Response

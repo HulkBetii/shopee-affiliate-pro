@@ -1,6 +1,6 @@
 import { extractUrlFromText, parseShopeeInput, extractShopeeIds, sanitizeShopeeUrl } from '../lib/shopee/parser';
 import { cacheService } from '../lib/cache';
-import { createVoucherShim, getVoucherShimBySlug, injectMetaVoucherParams } from '../lib/shopee/voucher-shim';
+import { createVoucherShim, getVoucherShimBySlug } from '../lib/shopee/voucher-shim';
 import { defaultShopeeClient } from '../lib/shopee/client';
 
 async function runPhase2Verification() {
@@ -69,27 +69,10 @@ async function runPhase2Verification() {
     console.error('❌ [TEST 3/5] CacheService: FAILED:', err.message);
   }
 
-  // Test 4: Voucher Injection & Universal Deep Link
+  // Test 4: Shim giữ nguyên short link affiliate chính thức & tự phục hồi slug s<code>
   try {
-    const affiliateUrl = 'https://s.shopee.vn/test_affiliate_link';
-    const withVoucher = injectMetaVoucherParams(affiliateUrl);
+    const affiliateUrl = 'https://s.shopee.vn/AbC123xyz';
 
-    if (!withVoucher.includes('meta_collab') || !withVoucher.includes('af_force_deeplink')) {
-      throw new Error(`Meta voucher params missing: ${withVoucher}`);
-    }
-
-    // Kiểm tra fallback khi không có ID
-    const shimFallback = await createVoucherShim({
-      originalUrl: 'https://shopee.vn/product/1/2',
-      cleanUrl: 'https://shopee.vn/product/1/2',
-      affiliateUrl,
-    });
-
-    if (!shimFallback.deepLink.startsWith('shopee://web?url=')) {
-      throw new Error(`Deep link invalid scheme: ${shimFallback.deepLink}`);
-    }
-
-    // Kiểm tra custom scheme sản phẩm đích danh khi có itemId & shopId
     const shimProduct = await createVoucherShim({
       originalUrl: 'https://shopee.vn/product/123/456',
       cleanUrl: 'https://shopee.vn/product/123/456',
@@ -98,13 +81,21 @@ async function runPhase2Verification() {
       shopId: '123',
     });
 
-    if (shimProduct.deepLink !== 'shopee://product/123/456') {
-      throw new Error(`Product deep link mismatch: expected shopee://product/123/456, got ${shimProduct.deepLink}`);
+    if (shimProduct.targetWithVoucherUrl !== affiliateUrl) {
+      throw new Error(`Target URL must be the untouched short link, got ${shimProduct.targetWithVoucherUrl}`);
     }
-
-    // Kiểm tra Android Intent giữ nguyên HTTPS URL đầy đủ tracking
-    if (!shimProduct.androidIntent.includes('package=com.shopee.vn') || !shimProduct.androidIntent.includes('scheme=https')) {
-      throw new Error(`Android Intent invalid format: ${shimProduct.androidIntent}`);
+    if (shimProduct.deepLink !== affiliateUrl) {
+      throw new Error(`Deep link must be the short link (Universal Link), got ${shimProduct.deepLink}`);
+    }
+    if (!shimProduct.androidIntent.startsWith('intent://s.shopee.vn/AbC123xyz#Intent;scheme=https;package=com.shopee.vn;')) {
+      throw new Error(`Android Intent must wrap the short link: ${shimProduct.androidIntent}`);
+    }
+    const serialized = JSON.stringify(shimProduct);
+    if (serialized.includes('shopee://') || serialized.includes('meta_collab') || serialized.includes('l.facebook.com')) {
+      throw new Error(`Shim contains attribution-breaking links: ${serialized}`);
+    }
+    if (shimProduct.slug !== 'sAbC123xyz') {
+      throw new Error(`Slug must carry the short link code, got ${shimProduct.slug}`);
     }
 
     const lookupShim = await getVoucherShimBySlug(shimProduct.slug);
@@ -112,17 +103,17 @@ async function runPhase2Verification() {
       throw new Error('Failed to retrieve voucher shim by slug or itemId missing');
     }
 
-    // Kiểm tra Stateless Slug Self-Healing khi Cache Miss (Serverless instance mới)
+    // Cache miss (serverless instance mới): slug s<code> phải tự dựng lại đúng short link
     await cacheService.delete(`shopee:shim:${shimProduct.slug}`);
     const recoveredShim = await getVoucherShimBySlug(shimProduct.slug);
-    if (!recoveredShim || recoveredShim.itemId !== '456' || recoveredShim.shopId !== '123') {
-      throw new Error('Stateless Self-Healing recovery failed when cache is empty');
+    if (!recoveredShim || recoveredShim.affiliateUrl !== affiliateUrl || recoveredShim.deepLink !== affiliateUrl) {
+      throw new Error('Stateless short-link recovery failed when cache is empty');
     }
 
-    console.log(`✅ [TEST 4/5] Voucher Injection & Stateless Slug Self-Healing: PASSED (Slug: ${shimProduct.slug})`);
+    console.log(`✅ [TEST 4/5] Official Short Link Shim & Stateless Recovery: PASSED (Slug: ${shimProduct.slug})`);
     passedTests++;
   } catch (err: any) {
-    console.error('❌ [TEST 4/5] Voucher Injection: FAILED:', err.message);
+    console.error('❌ [TEST 4/5] Official Short Link Shim: FAILED:', err.message);
   }
 
   // Test 5: End-to-End Pipeline Chuyển đổi Link

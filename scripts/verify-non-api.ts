@@ -1,7 +1,7 @@
 import { buildAffiliateTrackingUrl } from '../lib/shopee/tracking-builder';
 import { ShopeeSessionClient } from '../lib/shopee/session-client';
 import { ShopeeClient } from '../lib/shopee/client';
-import { createVoucherShim } from '../lib/shopee/voucher-shim';
+import { createVoucherShim, getVoucherShimBySlug } from '../lib/shopee/voucher-shim';
 
 async function runNonApiVerification() {
   console.log('====================================================');
@@ -11,7 +11,7 @@ async function runNonApiVerification() {
   let passedTests = 0;
   const totalTests = 4;
 
-  // Test 1: Direct Tracking URL Builder
+  // Test 1: Direct Tracking URL Builder (deprecated, không dùng trong production)
   try {
     const cleanUrl = 'https://shopee.vn/product/10928312/22819283712';
     const affiliateId = 'madridista0303';
@@ -57,25 +57,28 @@ async function runNonApiVerification() {
     console.error('❌ [TEST 2/4] Session Client: FAILED:', err.message);
   }
 
-  // Test 3: ShopeeClient Tier 2 (Direct Affiliate Tracking Mode)
+  // Test 3: ShopeeClient KHÔNG được phát link tự ghép khi thiếu session cookie & Open API key
   try {
     process.env.SHOPEE_AFFILIATE_ID = 'madridista0303';
     delete process.env.SHOPEE_APP_ID;
 
     const client = new ShopeeClient({ mockMode: false, appId: '', secretKey: '' });
-    const generated = await client.generateShortLink('https://shopee.vn/product/111/222', ['tiktok_bio']);
-
-    if (!generated.includes('af_sub_siteid=madridista0303')) {
-      throw new Error(`Generated tracking link missing affiliate ID: ${generated}`);
+    let errorCode: unknown = null;
+    try {
+      const generated = await client.generateShortLink('https://shopee.vn/product/111/222', ['tiktok_bio']);
+      throw new Error(`Expected AFFILIATE_LINK_UNAVAILABLE but got a link: ${generated}`);
+    } catch (err: any) {
+      errorCode = err?.code;
+      if (errorCode !== 'AFFILIATE_LINK_UNAVAILABLE') throw err;
     }
 
-    console.log(`✅ [TEST 3/4] ShopeeClient Direct Tracking Fallback: PASSED (${generated.slice(0, 60)}...)`);
+    console.log(`✅ [TEST 3/4] ShopeeClient refuses self-built tracking links: PASSED (${String(errorCode)})`);
     passedTests++;
   } catch (err: any) {
-    console.error('❌ [TEST 3/4] Client Tier 2: FAILED:', err.message);
+    console.error('❌ [TEST 3/4] Client fail-closed: FAILED:', err.message);
   }
 
-  // Test 4: End-to-End Non-API Voucher Shim & Deep Link
+  // Test 4: Shim cũ trỏ tới link tự ghép trong cache phải bị loại bỏ
   try {
     const originUrl = 'https://shopee.vn/product/111/222';
     const trackingLink = buildAffiliateTrackingUrl({
@@ -84,20 +87,21 @@ async function runNonApiVerification() {
       subIds: ['tiktok_bio'],
     });
 
-    const shim = await createVoucherShim({
+    const legacyShim = await createVoucherShim({
       originalUrl: originUrl,
       cleanUrl: originUrl,
       affiliateUrl: trackingLink,
     });
 
-    if (!shim.slug || !shim.deepLink.startsWith('shopee://web?url=')) {
-      throw new Error('Shim generation failed for non-API flow');
+    const lookup = await getVoucherShimBySlug(legacyShim.slug);
+    if (lookup !== null) {
+      throw new Error(`Legacy self-built shim must not be served: ${lookup.affiliateUrl}`);
     }
 
-    console.log(`✅ [TEST 4/4] Non-API Voucher Shim & Deep Link: PASSED (Slug: ${shim.slug})`);
+    console.log(`✅ [TEST 4/4] Legacy Self-Built Shim Rejected: PASSED (Slug: ${legacyShim.slug})`);
     passedTests++;
   } catch (err: any) {
-    console.error('❌ [TEST 4/4] End-to-End Shim: FAILED:', err.message);
+    console.error('❌ [TEST 4/4] Legacy Shim Rejection: FAILED:', err.message);
   }
 
   console.log('\n====================================================');
